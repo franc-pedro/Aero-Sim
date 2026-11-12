@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadcopter Drone Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Pyodide (In-Browser Python Runtime for Autonomous Drone Control) -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+    <style>
+        :root {
+            --bg-body: #e0f2fe;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --glass-bg: rgba(255, 255, 255, 0.78);
+            --glass-border: rgba(148, 163, 184, 0.35);
+            --card-bg: rgba(241, 245, 249, 0.85);
+            --card-border: rgba(203, 213, 225, 0.8);
+            --accent: #0284c7;
+            --accent-soft: rgba(2, 132, 199, 0.14);
+        }
+
+        [data-theme="sunset"] {
+            --bg-body: #ffedd5;
+            --text-primary: #27272a;
+            --text-secondary: #52525b;
+            --glass-bg: rgba(255, 251, 235, 0.8);
+            --glass-border: rgba(251, 146, 60, 0.35);
+            --card-bg: rgba(254, 243, 199, 0.75);
+            --card-border: rgba(253, 186, 116, 0.65);
+            --accent: #ea580c;
+            --accent-soft: rgba(234, 88, 12, 0.15);
+        }
+
+        [data-theme="night"] {
+            --bg-body: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --card-bg: rgba(30, 41, 59, 0.65);
+            --card-border: rgba(51, 65, 85, 0.6);
+            --accent: #22d3ee;
+            --accent-soft: rgba(6, 182, 212, 0.2);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            transition: background-color 0.35s ease, color 0.35s ease;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+        }
+        .sub-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            transition: background 0.35s ease, border-color 0.35s ease;
+        }
+        .theme-accent-text {
+            color: var(--accent);
+        }
+        .theme-accent-bg {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .theme-muted-text {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body data-theme="daylight" class="relative select-none">
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay / HUD -->
+    <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
+        
+        <!-- Top Bar: Title, Theme Switcher & Gamepad Status -->
+        <header class="flex flex-wrap justify-between items-center gap-3 w-full">
+            <div class="glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 shadow-xl pointer-events-auto">
+                <div class="theme-accent-bg p-2.5 rounded-xl">
+                    <i class="fa-solid fa-helicopter text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
+                    <p class="text-xs theme-muted-text">Quadcopter Flight Training v1.1</p>
+                </div>
+            </div>
+
+            <!-- Theme Switcher & Gamepad Status Badge -->
+            <div class="flex flex-wrap items-center gap-3 pointer-events-auto">
+                <!-- Flight Mode Switcher: Manual vs Python Code Autopilot -->
+                <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
+                    <button id="mode-btn-manual" onclick="setControlMode('manual')" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-gamepad"></i> Manual
+                    </button>
+                    <button id="mode-btn-python" onclick="setControlMode('python')" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5">
+                        <i class="fa-brands fa-python"></i> Python Code
+                    </button>
+                </div>
+
+                <div class="glass-panel px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
+                    <i class="fa-solid fa-palette text-xs theme-accent-text mr-1"></i>
+                    <button id="theme-btn-daylight" onclick="setTheme('daylight')" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow">Daylight</button>
+                    <button id="theme-btn-sunset" onclick="setTheme('sunset')" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80">Sunset</button>
+                    <button id="theme-btn-night" onclick="setTheme('night')" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80">Night Ops</button>
+                </div>
+
+                <div id="gamepad-status-badge" class="glass-panel px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-xl transition-all">
+                    <span id="gamepad-dot" class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
+                    <span id="gamepad-text" class="text-xs font-semibold tracking-wider uppercase theme-muted-text">No Gamepad Connected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Center Crosshair / Flight Indicator -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-45">
+            <div class="w-12 h-12 border-2 border-dashed border-sky-500 rounded-full flex items-center justify-center">
+                <div class="w-1.5 h-1.5 bg-sky-500 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Python Autopilot IDE Drawer (Visible in Python Code Mode) -->
+        <aside id="python-ide-panel" class="hidden pointer-events-auto self-end w-full md:w-[460px] glass-panel rounded-2xl shadow-2xl p-4 space-y-3 z-20">
+            <div class="flex items-center justify-between border-b border-slate-400/25 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-python text-lg theme-accent-text"></i>
+                    <div>
+                        <h2 class="text-xs font-bold uppercase tracking-wider">Autonomous Flight Script (Python)</h2>
+                        <p id="pyodide-status" class="text-[10px] theme-muted-text">Click "Run Script" to boot Python runtime</p>
+                    </div>
+                </div>
+                <select id="python-preset-select" onchange="loadPythonPreset(this.value)" class="sub-card theme-accent-text font-mono text-[11px] font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
+                    <option value="square">Preset: Waypoint Square</option>
+                    <option value="orbit">Preset: Orbit & Altitude Wave</option>
+                    <option value="slalom">Preset: Forward Slalom</option>
+                </select>
+            </div>
+
+            <!-- Code Editor -->
+            <div class="relative">
+                <textarea id="python-code-editor" spellcheck="false" rows="12" class="w-full font-mono text-xs leading-relaxed p-3 rounded-xl bg-slate-950 text-emerald-300 border border-slate-700/80 focus:outline-none focus:border-sky-500 resize-none"></textarea>
+            </div>
+
+            <!-- Execution Controls & Console Output -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <button id="btn-run-python" onclick="startPythonAutopilot()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-play"></i> Run Script
+                    </button>
+                    <button id="btn-stop-python" onclick="stopPythonAutopilot()" class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow flex items-center gap-1.5 transition-all opacity-50 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-stop"></i> Stop
+                    </button>
+                </div>
+                <button onclick="resetDrone()" class="px-2.5 py-1.5 rounded-xl sub-card text-xs font-semibold hover:opacity-80 transition-all">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Pos
+                </button>
+            </div>
+
+            <div id="python-console" class="sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text">Ready. Define control_step(state, dt) returning dict(throttle, pitch, roll, yaw).</div>
+        </aside>
+
+        <!-- Bottom HUD: Telemetry & Controls Guide -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pointer-events-auto items-end">
+            
+            <!-- Telemetry Panel -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider theme-accent-text flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high"></i> Telemetry Data
+                </h2>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="sub-card p-2.5 rounded-xl">
+                        <span class="text-xs theme-muted-text block">Altitude</span>
+                        <span id="telemetry-alt" class="text-lg font-mono font-bold">0.0 m</span>
+                    </div>
+                    <div class="sub-card p-2.5 rounded-xl">
+                        <span class="text-xs theme-muted-text block">Speed</span>
+                        <span id="telemetry-speed" class="text-lg font-mono font-bold">0.0 m/s</span>
+                    </div>
+                    <div class="sub-card p-2.5 rounded-xl">
+                        <span class="text-xs theme-muted-text block">Throttle</span>
+                        <span id="telemetry-throttle" class="text-lg font-mono font-bold theme-accent-text">0%</span>
+                    </div>
+                    <div class="sub-card p-2.5 rounded-xl">
+                        <span class="text-xs theme-muted-text block">Battery</span>
+                        <span id="telemetry-battery" class="text-lg font-mono font-bold text-emerald-500">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Status / Live Stick Input Debugger -->
+            <div class="glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
+                <div class="flex items-center justify-between w-full px-1">
+                    <span class="text-[11px] font-bold uppercase tracking-wider theme-accent-text flex items-center gap-1.5">
+                        <i class="fa-solid fa-crosshairs"></i> Stick & Axis Calibration
+                    </span>
+                    <span id="flight-mode" class="text-[10px] theme-accent-text font-bold tracking-wider theme-accent-bg px-2.5 py-0.5 rounded-full">MODE 2 / ALT HOLD</span>
+                </div>
+
+                <!-- Dual Stick Visualizers -->
+                <div class="flex items-center justify-center gap-5 w-full">
+                    <!-- Left Stick: Throttle (Y) & Yaw (X) -->
+                    <div class="flex flex-col items-center space-y-1">
+                        <div class="relative w-14 h-14 rounded-full sub-card shadow-inner flex items-center justify-center">
+                            <div class="absolute w-full h-[1px] bg-slate-400/30"></div>
+                            <div class="absolute h-full w-[1px] bg-slate-400/30"></div>
+                            <div id="stick-left-dot" class="w-3 h-3 rounded-full bg-sky-500 shadow-[0_0_8px_#0ea5e9] transition-transform duration-75" style="transform: translate(0px, 20px);"></div>
+                        </div>
+                        <span class="text-[10px] font-mono theme-muted-text">THR / YAW</span>
+                    </div>
+
+                    <!-- Live Numeric Readout -->
+                    <div class="text-[11px] font-mono space-y-0.5 sub-card px-2.5 py-1.5 rounded-xl min-w-[100px]">
+                        <div class="flex justify-between"><span>PIT:</span><span id="debug-pitch" class="text-emerald-500 font-bold">0.00</span></div>
+                        <div class="flex justify-between"><span>ROL:</span><span id="debug-roll" class="theme-accent-text font-bold">0.00</span></div>
+                        <div class="flex justify-between"><span>YAW:</span><span id="debug-yaw" class="theme-accent-text font-bold">0.00</span></div>
+                        <div class="flex justify-between"><span>THR:</span><span id="debug-thr" class="theme-accent-text font-bold">0.00</span></div>
+                    </div>
+
+                    <!-- Right Stick: Pitch (Y) & Roll (X) -->
+                    <div class="flex flex-col items-center space-y-1">
+                        <div class="relative w-14 h-14 rounded-full sub-card shadow-inner flex items-center justify-center">
+                            <div class="absolute w-full h-[1px] bg-slate-400/30"></div>
+                            <div class="absolute h-full w-[1px] bg-slate-400/30"></div>
+                            <div id="stick-right-dot" class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] transition-transform duration-75"></div>
+                        </div>
+                        <span class="text-[10px] font-mono theme-muted-text">PIT / ROL</span>
+                    </div>
+                </div>
+
+                <!-- Pitch Axis Selector & Invert Controls -->
+                <div class="w-full flex items-center justify-between gap-2 sub-card px-2.5 py-1.5 rounded-xl text-[11px]">
+                    <div class="flex items-center gap-1.5">
+                        <label for="pitch-axis-select" class="theme-muted-text font-medium">Pitch Axis:</label>
+                        <select id="pitch-axis-select" class="sub-card theme-accent-text font-mono font-semibold text-[11px] rounded px-1.5 py-0.5 focus:outline-none cursor-pointer">
+                            <option value="auto" selected>Auto Detect</option>
+                            <option value="3">Axis 3 (Std)</option>
+                            <option value="5">Axis 5 (Alt/RC)</option>
+                            <option value="4">Axis 4 (Alt)</option>
+                            <option value="1">Axis 1</option>
+                            <option value="2">Axis 2</option>
+                            <option value="6">Axis 6</option>
+                            <option value="7">Axis 7</option>
+                        </select>
+                    </div>
+                    <label class="flex items-center gap-1 cursor-pointer select-none">
+                        <input id="invert-pitch-checkbox" type="checkbox" class="accent-sky-500 rounded cursor-pointer">
+                        <span>Invert</span>
+                    </label>
+                </div>
+
+                <!-- Live Raw Axes Bar Chart (0..7) -->
+                <div class="w-full space-y-1">
+                    <div id="axes-bar-container" class="grid grid-cols-8 gap-1 w-full sub-card p-1.5 rounded-lg">
+                        <!-- Dynamically populated 8 axis meters -->
+                    </div>
+                    <div class="w-full flex items-center justify-between text-[10px] theme-muted-text px-0.5">
+                        <span id="raw-axes-readout" class="font-mono truncate max-w-[200px]">Active Pitch Ch: Auto</span>
+                        <span><kbd class="px-1.5 py-0.5 sub-card rounded font-mono font-semibold">R</kbd> Reset</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Help Card -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl space-y-2">
+                <h2 class="text-xs font-bold uppercase tracking-wider theme-accent-text flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad"></i> Controls Guide (Mode 2)
+                </h2>
+                <div class="text-xs space-y-1.5">
+                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
+                        <span class="theme-muted-text">Throttle (Up/Down)</span>
+                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">L-Stick Y / W S</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
+                        <span class="theme-muted-text">Yaw (Rotate)</span>
+                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">L-Stick X / A D</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
+                        <span class="theme-muted-text">Pitch (Forward/Back)</span>
+                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">R-Stick Y / ↑ ↓ (I/K)</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="theme-muted-text">Roll (Left/Right)</span>
+                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">R-Stick X / ← → (J/L)</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 glass-panel px-6 py-3 rounded-2xl shadow-2xl text-sm font-medium transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px] z-50 flex items-center gap-3">
+        <i id="toast-icon" class="fa-solid fa-circle-info theme-accent-text"></i>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <!-- Simulator Logic Script -->
+    <script>
+        // --- Notification Toast Helper ---
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+            if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-cyan-400';
+            }
+
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // --- Three.js & Simulation Setup ---
+        let scene, camera, renderer, droneMesh;
+        let ambientLight, hemiLight, dirLight, groundMesh, gridHelper;
+        let propellers = [];
+        let obstacles = [];
+        let keys = {};
+
+        // Drone physical state
+        const droneState = {
+            pos: new THREE.Vector3(0, 1.5, 0),
+            vel: new THREE.Vector3(0, 0, 0),
+            rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
+            angularVel: new THREE.Vector3(0, 0, 0),
+            throttle: 50, // 0 to 100% (50% = neutral altitude hold)
+            pitch: 0,     // -1 to 1
+            roll: 0,      // -1 to 1
+            yaw: 0,       // -1 to 1
+            battery: 100
+        };
+
+        // Gamepad tracking
+        let gamepadConnected = false;
+        let activeGamepadIndex = null;
+        let baselineAxes = [];
+        let selectedPitchAxis = 'auto';
+        let detectedPitchAxisIndex = 3;
+        let invertPitch = false;
+
+        // Control Mode ('manual' | 'python') & Pyodide Runtime State
+        let controlMode = 'manual';
+        let pyodideInstance = null;
+        let pyodideLoading = false;
+        let pythonRunning = false;
+        let pythonControlFn = null;
+        let simElapsedTime = 0;
+
+        const PYTHON_PRESETS = {
+            square: `import math
+
+# Autonomous Waypoint Square Pattern
+# state keys: x, y, z, vx, vy, vz, yaw, pitch, roll, time, battery
+# return: {'throttle': 0..100 (50=hover), 'pitch': -1..1, 'roll': -1..1, 'yaw': -1..1}
+
+WAYPOINTS = [
+    (0.0, 5.0, 15.0),
+    (15.0, 5.0, 15.0),
+    (15.0, 5.0, 0.0),
+    (0.0, 5.0, 0.0),
+]
+
+def control_step(state, dt):
+    idx = int(state['time'] // 6) % len(WAYPOINTS)
+    tx, ty, tz = WAYPOINTS[idx]
+
+    ex = tx - state['x']
+    ey = ty - state['y']
+    ez = tz - state['z']
+
+    # Altitude PD controller (50 = neutral hover)
+    throttle = max(0.0, min(100.0, 50.0 + ey * 10.0 - state['vy'] * 5.0))
+
+    # World-frame desired velocity -> body-frame pitch & roll
+    yaw = state['yaw']
+    desired_vx = max(-1.0, min(1.0, ex * 0.18 - state['vx'] * 0.25))
+    desired_vz = max(-1.0, min(1.0, ez * 0.18 - state['vz'] * 0.25))
+
+    pitch = desired_vz * math.cos(yaw) + desired_vx * math.sin(yaw)
+    roll  = -desired_vx * math.cos(yaw) + desired_vz * math.sin(yaw)
+
+    return {
+        'throttle': throttle,
+        'pitch': max(-0.8, min(0.8, pitch)),
+        'roll': max(-0.8, min(0.8, roll)),
+        'yaw': 0.0
+    }`,
+            orbit: `import math
+
+# Smooth Circular Orbit + Sine Altitude Wave
+def control_step(state, dt):
+    t = state['time']
+    radius = 12.0
+    omega = 0.45
+
+    tx = math.cos(omega * t) * radius
+    tz = math.sin(omega * t) * radius
+    ty = 6.0 + math.sin(t * 0.8) * 2.5
+
+    ex, ey, ez = tx - state['x'], ty - state['y'], tz - state['z']
+    throttle = max(0.0, min(100.0, 50.0 + ey * 9.0 - state['vy'] * 4.5))
+
+    yaw = state['yaw']
+    vx_cmd = max(-1.0, min(1.0, ex * 0.2 - state['vx'] * 0.2))
+    vz_cmd = max(-1.0, min(1.0, ez * 0.2 - state['vz'] * 0.2))
+
+    pitch = vz_cmd * math.cos(yaw) + vx_cmd * math.sin(yaw)
+    roll  = -vx_cmd * math.cos(yaw) + vz_cmd * math.sin(yaw)
+
+    return {
+        'throttle': throttle,
+        'pitch': max(-0.85, min(0.85, pitch)),
+        'roll': max(-0.85, min(0.85, roll)),
+        'yaw': 0.25
+    }`,
+            slalom: `import math
+
+# Forward Cruise with Lateral Sine Slalom
+def control_step(state, dt):
+    t = state['time']
+    target_alt = 4.5
+    ey = target_alt - state['y']
+
+    throttle = max(0.0, min(100.0, 50.0 + ey * 10.0 - state['vy'] * 5.0))
+    roll_wave = math.sin(t * 1.4) * 0.55
+
+    return {
+        'throttle': throttle,
+        'pitch': 0.45,
+        'roll': roll_wave,
+        'yaw': 0.0
+    }`
+        };
+
+        function loadPythonPreset(name) {
+            const editor = document.getElementById('python-code-editor');
+            if (editor && PYTHON_PRESETS[name]) {
+                editor.value = PYTHON_PRESETS[name];
+            }
+        }
+
+        function setControlMode(mode) {
+            controlMode = mode;
+            const manualBtn = document.getElementById('mode-btn-manual');
+            const pythonBtn = document.getElementById('mode-btn-python');
+            const idePanel = document.getElementById('python-ide-panel');
+            const flightModeBadge = document.getElementById('flight-mode');
+
+            if (mode === 'python') {
+                pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-white shadow flex items-center gap-1.5';
+                manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
+                idePanel.classList.remove('hidden');
+                if (flightModeBadge) flightModeBadge.innerText = pythonRunning ? 'PYTHON AUTOPILOT' : 'PYTHON STANDBY';
+            } else {
+                stopPythonAutopilot();
+                manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow flex items-center gap-1.5';
+                pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
+                idePanel.classList.add('hidden');
+                if (flightModeBadge) flightModeBadge.innerText = 'MODE 2 / ALT HOLD';
+            }
+        }
+
+        async function startPythonAutopilot() {
+            const consoleEl = document.getElementById('python-console');
+            const statusEl = document.getElementById('pyodide-status');
+            const runBtn = document.getElementById('btn-run-python');
+            const stopBtn = document.getElementById('btn-stop-python');
+            const code = document.getElementById('python-code-editor').value;
+
+            try {
+                if (!pyodideInstance) {
+                    if (pyodideLoading) return;
+                    pyodideLoading = true;
+                    statusEl.innerText = 'Loading Pyodide Python runtime (~8MB)...';
+                    consoleEl.innerText = 'Initializing Python VM in browser...';
+                    pyodideInstance = await loadPyodide();
+                    pyodideLoading = false;
+                    statusEl.innerText = 'Python 3.12 Ready';
+                }
+
+                // Execute user script and bind control_step function
+                await pyodideInstance.runPythonAsync(code);
+                const fn = pyodideInstance.globals.get('control_step');
+                if (!fn) {
+                    throw new Error('Your script must define `def control_step(state, dt):`');
+                }
+
+                pythonControlFn = fn;
+                pythonRunning = true;
+                simElapsedTime = 0;
+
+                runBtn.disabled = true;
+                runBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                stopBtn.disabled = false;
+                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                const flightModeBadge = document.getElementById('flight-mode');
+                if (flightModeBadge) flightModeBadge.innerText = 'PYTHON AUTOPILOT';
+
+                consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap text-emerald-500';
+                consoleEl.innerText = 'Autopilot running! Executing control_step(state, dt) every frame.';
+                showToast('Python Autopilot engaged!', 'success');
+            } catch (err) {
+                pyodideLoading = false;
+                pythonRunning = false;
+                consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap text-rose-500';
+                consoleEl.innerText = `Python Error:\n${err.message || err}`;
+                showToast('Python script error. Check console.', 'warning');
+            }
+        }
+
+        function stopPythonAutopilot() {
+            pythonRunning = false;
+            pythonControlFn = null;
+            droneState.throttle = 50;
+            droneState.pitch = 0;
+            droneState.roll = 0;
+            droneState.yaw = 0;
+
+            const runBtn = document.getElementById('btn-run-python');
+            const stopBtn = document.getElementById('btn-stop-python');
+            const consoleEl = document.getElementById('python-console');
+            const flightModeBadge = document.getElementById('flight-mode');
+
+            if (runBtn) {
+                runBtn.disabled = false;
+                runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (stopBtn) {
+                stopBtn.disabled = true;
+                stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            if (consoleEl && controlMode === 'python') {
+                consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
+                consoleEl.innerText = 'Autopilot stopped. Drone holding position.';
+            }
+            if (flightModeBadge && controlMode === 'python') {
+                flightModeBadge.innerText = 'PYTHON STANDBY';
+            }
+        }
+
+        function runPythonStep(dt) {
+            if (!pythonRunning || !pythonControlFn || !pyodideInstance) {
+                droneState.throttle = 50;
+                droneState.pitch = 0;
+                droneState.roll = 0;
+                droneState.yaw = 0;
+                return;
+            }
+
+            simElapsedTime += dt;
+            const stateObj = pyodideInstance.toPy({
+                x: droneState.pos.x,
+                y: droneState.pos.y,
+                z: droneState.pos.z,
+                vx: droneState.vel.x,
+                vy: droneState.vel.y,
+                vz: droneState.vel.z,
+                pitch: droneState.rotation.x,
+                yaw: droneState.rotation.y,
+                roll: droneState.rotation.z,
+                throttle: droneState.throttle,
+                battery: droneState.battery,
+                time: simElapsedTime
+            });
+
+            let pyResult = null;
+            try {
+                pyResult = pythonControlFn(stateObj, dt);
+                const cmd = pyResult && pyResult.toJs ? pyResult.toJs({ dict_converter: Object.fromEntries }) : pyResult;
+
+                if (cmd && typeof cmd === 'object') {
+                    const clamp = (v, min, max) => Math.max(min, Math.min(max, Number(v) || 0));
+                    droneState.throttle = cmd.throttle !== undefined ? clamp(cmd.throttle, 0, 100) : 50;
+                    droneState.pitch = clamp(cmd.pitch, -1, 1);
+                    droneState.roll = clamp(cmd.roll, -1, 1);
+                    droneState.yaw = clamp(cmd.yaw, -1, 1);
+                }
+            } catch (err) {
+                const consoleEl = document.getElementById('python-console');
+                if (consoleEl) {
+                    consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap text-rose-500';
+                    consoleEl.innerText = `Runtime Error:\n${err.message || err}`;
+                }
+                stopPythonAutopilot();
+            } finally {
+                if (stateObj && stateObj.destroy) stateObj.destroy();
+                if (pyResult && pyResult.destroy) pyResult.destroy();
+            }
+        }
+
+        // Visual Themes (CSS + 3D Scene Atmosphere)
+        const SCENE_THEMES = {
+            daylight: {
+                sky: 0xbae6fd,
+                fog: 0xdbeafe,
+                fogDensity: 0.006,
+                ambientIntensity: 0.85,
+                hemiSky: 0xf0f9ff,
+                hemiGround: 0x94a3b8,
+                hemiIntensity: 0.75,
+                dirColor: 0xfffbeb,
+                dirIntensity: 1.45,
+                groundColor: 0xe2e8f0,
+                gridMain: 0x0284c7,
+                gridSub: 0x94a3b8,
+                btnClass: 'bg-sky-500 text-white shadow'
+            },
+            sunset: {
+                sky: 0xfed7aa,
+                fog: 0xfdba74,
+                fogDensity: 0.007,
+                ambientIntensity: 0.75,
+                hemiSky: 0xffedd5,
+                hemiGround: 0x78716c,
+                hemiIntensity: 0.7,
+                dirColor: 0xfb923c,
+                dirIntensity: 1.5,
+                groundColor: 0xd6d3d1,
+                gridMain: 0xea580c,
+                gridSub: 0xa8a29e,
+                btnClass: 'bg-orange-500 text-white shadow'
+            },
+            night: {
+                sky: 0x0b132b,
+                fog: 0x0b132b,
+                fogDensity: 0.014,
+                ambientIntensity: 0.65,
+                hemiSky: 0x1e293b,
+                hemiGround: 0x0f172a,
+                hemiIntensity: 0.45,
+                dirColor: 0xffffff,
+                dirIntensity: 1.2,
+                groundColor: 0x1e293b,
+                gridMain: 0x06b6d4,
+                gridSub: 0x334155,
+                btnClass: 'bg-cyan-500 text-slate-950 shadow'
+            }
+        };
+
+        function setTheme(themeName) {
+            const cfg = SCENE_THEMES[themeName] || SCENE_THEMES.daylight;
+            document.body.setAttribute('data-theme', themeName);
+
+            // Update theme button highlights
+            ['daylight', 'sunset', 'night'].forEach((t) => {
+                const btn = document.getElementById(`theme-btn-${t}`);
+                if (!btn) return;
+                if (t === themeName) {
+                    btn.className = `px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${SCENE_THEMES[t].btnClass}`;
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80';
+                }
+            });
+
+            // Update 3D Scene Atmosphere & Lighting
+            if (scene) {
+                scene.background = new THREE.Color(cfg.sky);
+                scene.fog = new THREE.FogExp2(cfg.fog, cfg.fogDensity);
+            }
+            if (ambientLight) ambientLight.intensity = cfg.ambientIntensity;
+            if (hemiLight) {
+                hemiLight.color.setHex(cfg.hemiSky);
+                hemiLight.groundColor.setHex(cfg.hemiGround);
+                hemiLight.intensity = cfg.hemiIntensity;
+            }
+            if (dirLight) {
+                dirLight.color.setHex(cfg.dirColor);
+                dirLight.intensity = cfg.dirIntensity;
+            }
+            if (groundMesh) {
+                groundMesh.material.color.setHex(cfg.groundColor);
+            }
+            if (gridHelper) {
+                scene.remove(gridHelper);
+                gridHelper = new THREE.GridHelper(400, 80, cfg.gridMain, cfg.gridSub);
+                gridHelper.position.y = 0.05;
+                scene.add(gridHelper);
+            }
+        }
+
+        function init() {
+            const defaultTheme = SCENE_THEMES.daylight;
+
+            // 1. Scene Setup (Bright Daylight Default)
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(defaultTheme.sky);
+            scene.fog = new THREE.FogExp2(defaultTheme.fog, defaultTheme.fogDensity);
+
+            // 2. Camera Setup
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // 3. Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // 4. Lighting (Bright Three-Point + Hemisphere Sky Fill)
+            ambientLight = new THREE.AmbientLight(0xffffff, defaultTheme.ambientIntensity);
+            scene.add(ambientLight);
+
+            hemiLight = new THREE.HemisphereLight(defaultTheme.hemiSky, defaultTheme.hemiGround, defaultTheme.hemiIntensity);
+            hemiLight.position.set(0, 100, 0);
+            scene.add(hemiLight);
+
+            dirLight = new THREE.DirectionalLight(defaultTheme.dirColor, defaultTheme.dirIntensity);
+            dirLight.position.set(50, 100, 50);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 300;
+            const d = 60;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            // 5. Build Environment
+            createEnvironment();
+
+            // 6. Build Drone
+            droneMesh = createQuadcopter();
+            scene.add(droneMesh);
+
+            // 6.5 Initialize Pitch Calibration UI & 8-Channel Raw Axes Meters
+            const axesBarContainer = document.getElementById('axes-bar-container');
+            if (axesBarContainer) {
+                axesBarContainer.innerHTML = '';
+                for (let i = 0; i < 8; i++) {
+                    axesBarContainer.innerHTML += `
+                        <div class="flex flex-col items-center gap-0.5">
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex items-center">
+                                <div id="axis-bar-${i}" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%; margin-left: 50%;"></div>
+                            </div>
+                            <span id="axis-label-${i}" class="text-[9px] font-mono text-slate-400">A${i}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            const pitchAxisSelect = document.getElementById('pitch-axis-select');
+            if (pitchAxisSelect) {
+                pitchAxisSelect.addEventListener('change', (e) => {
+                    selectedPitchAxis = e.target.value;
+                    if (selectedPitchAxis !== 'auto') {
+                        detectedPitchAxisIndex = Number(selectedPitchAxis);
+                    }
+                });
+            }
+
+            const invertPitchCheckbox = document.getElementById('invert-pitch-checkbox');
+            if (invertPitchCheckbox) {
+                invertPitchCheckbox.addEventListener('change', (e) => {
+                    invertPitch = e.target.checked;
+                });
+            }
+
+            // Load default Python autopilot script preset
+            loadPythonPreset('square');
+
+            // 7. Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', (e) => {
+                // Allow typing normally inside the Python code editor
+                if (document.activeElement && document.activeElement.id === 'python-code-editor') return;
+
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+                    e.preventDefault();
+                }
+                keys[e.code] = true;
+                if (e.code === 'KeyR') resetDrone();
+            });
+            window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+            window.addEventListener('gamepadconnected', (e) => {
+                gamepadConnected = true;
+                activeGamepadIndex = e.gamepad.index;
+                showToast(`Gamepad Connected: ${e.gamepad.id}`, 'success');
+                updateGamepadUI(true);
+            });
+            window.addEventListener('gamepaddisconnected', (e) => {
+                if (activeGamepadIndex === e.gamepad.index) {
+                    gamepadConnected = false;
+                    activeGamepadIndex = null;
+                    showToast('Gamepad Disconnected. Switched to Keyboard.', 'warning');
+                    updateGamepadUI(false);
+                }
+            });
+
+            // Start Animation Loop
+            animate();
+        }
+
+        // --- Environment Generator ---
+        function createEnvironment() {
+            const defaultTheme = SCENE_THEMES.daylight;
+
+            // Textured / Grid Ground
+            const groundGeo = new THREE.PlaneGeometry(400, 400, 50, 50);
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                color: defaultTheme.groundColor, 
+                roughness: 0.75,
+                metalness: 0.1
+            });
+            groundMesh = new THREE.Mesh(groundGeo, groundMat);
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.receiveShadow = true;
+            scene.add(groundMesh);
+
+            // Grid Helper for visual depth
+            gridHelper = new THREE.GridHelper(400, 80, defaultTheme.gridMain, defaultTheme.gridSub);
+            gridHelper.position.y = 0.05;
+            scene.add(gridHelper);
+
+            // Obstacles (Training Course Pillars & Cubes)
+            const obstacleMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.4, metalness: 0.5 });
+            const hazardMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.4, metalness: 0.5 });
+
+            for (let i = 0; i < 30; i++) {
+                const isHazard = i % 5 === 0;
+                const height = 5 + Math.random() * 15;
+                const radius = 1.5 + Math.random() * 2;
+                
+                const geom = new THREE.CylinderGeometry(radius, radius, height, 16);
+                const mesh = new THREE.Mesh(geom, isHazard ? hazardMat : obstacleMat);
+
+                let x, z;
+                do {
+                    x = (Math.random() - 0.5) * 300;
+                    z = (Math.random() - 0.5) * 300;
+                } while (Math.abs(x) < 15 && Math.abs(z) < 15); // keep spawn area clear
+
+                mesh.position.set(x, height / 2, z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                obstacles.push({ mesh, radius, height, pos: mesh.position });
+            }
+
+            // Floating rings / gates for extra immersion
+            for (let i = 0; i < 5; i++) {
+                const ringGeo = new THREE.TorusGeometry(4, 0.4, 16, 50);
+                const ringMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, emissiveIntensity: 0.5 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.position.set((i - 2) * 25, 8 + Math.random() * 5, -30 - i * 30);
+                ring.rotation.y = Math.PI / 4;
+                scene.add(ring);
+            }
+        }
+
+        // --- Quadcopter 3D Model Constructor ---
+        function createQuadcopter() {
+            const droneGroup = new THREE.Group();
+
+            // Shared Materials
+            const carbonMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.75, roughness: 0.25 });
+            const shellMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.25, roughness: 0.2 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.5, roughness: 0.25 });
+            const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.2 });
+
+            // Main Aerodynamic Fuselage Core
+            const lowerPlate = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.1, 1.05), carbonMat);
+            lowerPlate.position.y = -0.02;
+            lowerPlate.castShadow = true;
+            droneGroup.add(lowerPlate);
+
+            // Sculpted Upper Canopy Shell
+            const upperShell = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.16, 0.92), shellMat);
+            upperShell.position.set(0, 0.09, -0.02);
+            upperShell.castShadow = true;
+            droneGroup.add(upperShell);
+
+            // Aerodynamic Nose Cone (+Z Front)
+            const noseGeo = new THREE.CylinderGeometry(0.14, 0.3, 0.36, 16);
+            noseGeo.rotateX(Math.PI / 2);
+            const nose = new THREE.Mesh(noseGeo, shellMat);
+            nose.position.set(0, 0.06, 0.54);
+            nose.castShadow = true;
+            droneGroup.add(nose);
+
+            // Top Racing Stripe & LiPo Battery Pack
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.88), accentMat);
+            stripe.position.set(0, 0.175, -0.02);
+            droneGroup.add(stripe);
+
+            const batteryPack = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 0.58), darkMetalMat);
+            batteryPack.position.set(0, 0.23, -0.08);
+            batteryPack.castShadow = true;
+            droneGroup.add(batteryPack);
+
+            const batteryStrap = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.15, 0.12), accentMat);
+            batteryStrap.position.set(0, 0.23, -0.08);
+            droneGroup.add(batteryStrap);
+
+            // GPS Mast / Antenna on Rear
+            const antennaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.24, 8), carbonMat);
+            antennaStem.position.set(0.16, 0.28, -0.42);
+            antennaStem.rotation.x = -0.25;
+            droneGroup.add(antennaStem);
+
+            const antennaCap = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 10), accentMat);
+            antennaCap.position.set(0.16, 0.4, -0.45);
+            droneGroup.add(antennaCap);
+
+            // Front FPV Gimbal Camera Assembly (+Z)
+            const gimbalBracket = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.16, 0.2), darkMetalMat);
+            gimbalBracket.position.set(0, -0.1, 0.46);
+            droneGroup.add(gimbalBracket);
+
+            const camBarrelGeo = new THREE.CylinderGeometry(0.09, 0.1, 0.18, 20);
+            camBarrelGeo.rotateX(Math.PI / 2);
+            const camBarrel = new THREE.Mesh(camBarrelGeo, darkMetalMat);
+            camBarrel.position.set(0, -0.11, 0.55);
+            droneGroup.add(camBarrel);
+
+            const lensGlass = new THREE.Mesh(
+                new THREE.SphereGeometry(0.075, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0x0ea5e9, metalness: 0.95, roughness: 0.05 })
+            );
+            lensGlass.position.set(0, -0.11, 0.61);
+            droneGroup.add(lensGlass);
+
+            // Front Headlight Bar & Rear Taillight Bar
+            const headLight = new THREE.Mesh(
+                new THREE.BoxGeometry(0.32, 0.04, 0.04),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+            );
+            headLight.position.set(0, 0.05, 0.72);
+            droneGroup.add(headLight);
+
+            const tailLight = new THREE.Mesh(
+                new THREE.BoxGeometry(0.46, 0.05, 0.04),
+                new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+            );
+            tailLight.position.set(0, 0.08, -0.53);
+            droneGroup.add(tailLight);
+
+            // Landing Skids (Left & Right)
+            [-0.36, 0.36].forEach((sideX) => {
+                // Vertical struts
+                [-0.28, 0.28].forEach((strutZ) => {
+                    const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.24, 8), carbonMat);
+                    strut.position.set(sideX, -0.14, strutZ);
+                    strut.rotation.z = sideX > 0 ? -0.18 : 0.18;
+                    strut.castShadow = true;
+                    droneGroup.add(strut);
+                });
+                // Horizontal skid rail
+                const railGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.85, 10);
+                railGeo.rotateX(Math.PI / 2);
+                const rail = new THREE.Mesh(railGeo, darkMetalMat);
+                rail.position.set(sideX * 1.06, -0.25, 0);
+                rail.castShadow = true;
+                droneGroup.add(rail);
+            });
+
+            // Arms, Brushless Motors & Twin-Blade Propellers + Motion Blur Discs
+            const armPositions = [
+                { x: -0.78, z: 0.75, color: 0x10b981 },  // Front Left (Emerald Green)
+                { x: 0.78, z: 0.75, color: 0x10b981 },   // Front Right (Emerald Green)
+                { x: -0.78, z: -0.75, color: 0xf43f5e }, // Rear Left (Crimson Red)
+                { x: 0.78, z: -0.75, color: 0xf43f5e }   // Rear Right (Crimson Red)
+            ];
+
+            propellers = [];
+            armPositions.forEach((pos) => {
+                const armLength = Math.hypot(pos.x, pos.z);
+                const armAngle = Math.atan2(pos.x, pos.z);
+
+                // Tapered Carbon Fiber Arm
+                const armGeo = new THREE.BoxGeometry(0.11, 0.065, armLength);
+                const arm = new THREE.Mesh(armGeo, carbonMat);
+                arm.position.set(pos.x * 0.5, 0.01, pos.z * 0.5);
+                arm.rotation.y = armAngle;
+                arm.castShadow = true;
+                droneGroup.add(arm);
+
+                // LED Accent Strip along Arm
+                const armStripe = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.03, 0.072, armLength * 0.65),
+                    new THREE.MeshBasicMaterial({ color: pos.color })
+                );
+                armStripe.position.set(pos.x * 0.55, 0.01, pos.z * 0.55);
+                armStripe.rotation.y = armAngle;
+                droneGroup.add(armStripe);
+
+                // Motor Mount Pod & Brushless Bell
+                const pod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.08, 16), carbonMat);
+                pod.position.set(pos.x, 0.02, pos.z);
+                droneGroup.add(pod);
+
+                const motorBell = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.14, 20), darkMetalMat);
+                motorBell.position.set(pos.x, 0.11, pos.z);
+                motorBell.castShadow = true;
+                droneGroup.add(motorBell);
+
+                const motorRing = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.132, 0.012, 8, 24),
+                    new THREE.MeshBasicMaterial({ color: pos.color })
+                );
+                motorRing.rotation.x = Math.PI / 2;
+                motorRing.position.set(pos.x, 0.13, pos.z);
+                droneGroup.add(motorRing);
+
+                // Under-arm Navigation Beacon
+                const navLed = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.055, 10, 10),
+                    new THREE.MeshBasicMaterial({ color: pos.color })
+                );
+                navLed.position.set(pos.x, -0.05, pos.z);
+                droneGroup.add(navLed);
+
+                // Rotor Assembly (Spinner Cap + Aerodynamic Blades + Blur Disc)
+                const propGroup = new THREE.Group();
+                propGroup.position.set(pos.x, 0.21, pos.z);
+
+                const spinner = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.09, 14), shellMat);
+                spinner.position.y = 0.03;
+                propGroup.add(spinner);
+
+                const bladeMat = new THREE.MeshStandardMaterial({
+                    color: 0x0f172a,
+                    metalness: 0.4,
+                    roughness: 0.35
+                });
+                const tipMat = new THREE.MeshBasicMaterial({ color: pos.color });
+
+                // Two pitched blades
+                const blade1 = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.014, 0.085), bladeMat);
+                blade1.rotation.x = 0.14;
+                propGroup.add(blade1);
+
+                // Colored safety tips on propeller ends
+                [-0.45, 0.45].forEach((tipX) => {
+                    const tip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.016, 0.088), tipMat);
+                    tip.position.x = tipX;
+                    tip.rotation.x = 0.14;
+                    propGroup.add(tip);
+                });
+
+                // Subtle semi-transparent rotor motion-blur disc
+                const discGeo = new THREE.CylinderGeometry(0.49, 0.49, 0.005, 32);
+                const discMat = new THREE.MeshBasicMaterial({
+                    color: pos.color,
+                    transparent: true,
+                    opacity: 0.14,
+                    depthWrite: false
+                });
+                const blurDisc = new THREE.Mesh(discGeo, discMat);
+                propGroup.add(blurDisc);
+
+                droneGroup.add(propGroup);
+                propellers.push(propGroup);
+            });
+
+            return droneGroup;
+        }
+
+        // --- Reset Drone Position & State ---
+        function resetDrone() {
+            droneState.pos.set(0, 1.5, 0);
+            droneState.vel.set(0, 0, 0);
+            droneState.rotation.set(0, 0, 0, 'YXZ');
+            droneState.angularVel.set(0, 0, 0);
+            droneState.throttle = 50;
+            droneState.pitch = 0;
+            droneState.roll = 0;
+            droneState.yaw = 0;
+            droneState.battery = 100;
+            baselineAxes = [];
+            showToast('Drone reset to launch pad (Altitude Hold active).', 'info');
+        }
+
+        // --- Gamepad Status UI Updater ---
+        function updateGamepadUI(connected, name = '') {
+            const dot = document.getElementById('gamepad-dot');
+            const text = document.getElementById('gamepad-text');
+            if (!dot || !text) return;
+
+            if (connected) {
+                dot.className = 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]';
+                text.innerText = name ? `Connected: ${name.slice(0, 24)}` : 'Gamepad Connected';
+                text.className = 'text-xs font-semibold tracking-wider uppercase text-emerald-600 dark:text-emerald-300';
+            } else {
+                dot.className = 'w-3 h-3 rounded-full bg-rose-500 animate-pulse';
+                text.innerText = 'No Gamepad Connected';
+                text.className = 'text-xs font-semibold tracking-wider uppercase theme-muted-text';
+            }
+        }
+
+        // --- Gamepad Input Polling ---
+        function pollGamepad() {
+            if (!navigator.getGamepads) return;
+            const gamepads = navigator.getGamepads();
+            let gp = activeGamepadIndex !== null ? gamepads[activeGamepadIndex] : null;
+
+            // Auto-detect if a gamepad was already connected before page load
+            if (!gp) {
+                for (let i = 0; i < gamepads.length; i++) {
+                    if (gamepads[i]) {
+                        gp = gamepads[i];
+                        activeGamepadIndex = i;
+                        if (!gamepadConnected) {
+                            gamepadConnected = true;
+                            updateGamepadUI(true, gp.id);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!gp) return;
+
+            const deadzone = 0.08;
+            const applyDeadzone = (val) => {
+                if (val === undefined || val === null || Number.isNaN(val)) return 0;
+                return Math.abs(val) < deadzone ? 0 : val;
+            };
+
+            const axes = gp.axes || [];
+
+            // Capture initial resting baseline for secondary axes (triggers/sliders often rest at -1 or +1)
+            if (baselineAxes.length !== axes.length) {
+                baselineAxes = Array.from(axes).map(v => (Math.abs(v) > 0.85 ? Math.sign(v) : 0));
+            }
+
+            // Update visual 8-channel raw axes monitor
+            for (let i = 0; i < 8; i++) {
+                const bar = document.getElementById(`axis-bar-${i}`);
+                const lbl = document.getElementById(`axis-label-${i}`);
+                if (!bar || !lbl) continue;
+
+                if (i < axes.length) {
+                    const v = Math.max(-1, Math.min(1, axes[i]));
+                    const pct = Math.abs(v) * 50;
+                    bar.style.width = `${pct}%`;
+                    bar.style.marginLeft = v >= 0 ? '50%' : `${50 - pct}%`;
+                    const isActivePitch = (selectedPitchAxis === 'auto' ? detectedPitchAxisIndex === i : Number(selectedPitchAxis) === i);
+                    bar.className = `h-full transition-all duration-75 ${isActivePitch ? 'bg-emerald-400' : 'bg-cyan-400'}`;
+                    lbl.className = `text-[9px] font-mono ${isActivePitch ? 'text-emerald-400 font-bold' : 'text-slate-400'}`;
+                } else {
+                    bar.style.width = '0%';
+                    lbl.className = 'text-[9px] font-mono text-slate-600';
+                }
+            }
+
+            // Standard Mode 2 Left Stick & Roll:
+            // axes[0] = Yaw, axes[1] = Throttle, axes[2] = Roll
+            const rawThrottle = applyDeadzone(axes[1]);
+            const rawYaw = applyDeadzone(axes[0]);
+            const rawRoll = applyDeadzone(axes[2]);
+
+            // Pitch Axis Resolution (Manual override or intelligent Auto-Detect)
+            let rawPitch = 0;
+            if (selectedPitchAxis !== 'auto') {
+                const idx = Number(selectedPitchAxis);
+                detectedPitchAxisIndex = idx;
+                rawPitch = applyDeadzone(axes[idx]);
+            } else {
+                // Check standard Axis 3 first, then common USB/RC right-stick Y axes (5, 4, 6, 7)
+                const candidateIndices = [3, 5, 4, 6, 7];
+                let bestIdx = detectedPitchAxisIndex;
+                let bestDeflection = 0;
+
+                for (const idx of candidateIndices) {
+                    if (idx >= axes.length) continue;
+                    const base = baselineAxes[idx] || 0;
+                    const delta = axes[idx] - base;
+                    // Ignore axes stuck at an unmoved rail (-1 or +1 when baseline was 0) unless actively moving
+                    const mag = Math.abs(delta);
+                    if (mag > deadzone && mag <= 1.05 && mag > bestDeflection) {
+                        bestDeflection = mag;
+                        bestIdx = idx;
+                    }
+                }
+
+                detectedPitchAxisIndex = bestIdx;
+                const base = baselineAxes[bestIdx] || 0;
+                rawPitch = applyDeadzone(axes[bestIdx] - base);
+            }
+
+            const rawEl = document.getElementById('raw-axes-readout');
+            if (rawEl) {
+                const valStr = (axes[detectedPitchAxisIndex] !== undefined) ? axes[detectedPitchAxisIndex].toFixed(2) : 'N/A';
+                rawEl.innerText = `Pitch Ch: A${detectedPitchAxisIndex} (${valStr})`;
+            }
+
+            // Pushing stick UP gives negative Y on standard gamepads -> invert for positive Throttle & forward Pitch
+            const axisThrottle = -rawThrottle;
+            const pitchSign = invertPitch ? 1 : -1;
+            const axisPitch = rawPitch * pitchSign;
+
+            // Spring-centered gamepad throttle: 0 (centered) maps to 50% (altitude hold)
+            droneState.throttle = Math.max(0, Math.min(100, (axisThrottle + 1) * 50));
+            droneState.yaw = -rawYaw;
+            droneState.pitch = Math.max(-1, Math.min(1, axisPitch));
+            droneState.roll = rawRoll;
+        }
+
+        // --- Keyboard Input Handling ---
+        function handleKeyboard() {
+            const keyboardActive = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
+                                   keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] ||
+                                   keys['KeyI'] || keys['KeyK'] || keys['KeyJ'] || keys['KeyL'];
+
+            if (gamepadConnected && !keyboardActive) return;
+
+            // Throttle controls (W = Climb, S = Descend, neither = Hold Altitude at 50%)
+            if (keys['KeyW']) {
+                droneState.throttle = 85;
+            } else if (keys['KeyS']) {
+                droneState.throttle = 15;
+            } else {
+                droneState.throttle = 50;
+            }
+
+            // Yaw controls (A / D)
+            if (keys['KeyA']) droneState.yaw = 1;
+            else if (keys['KeyD']) droneState.yaw = -1;
+            else droneState.yaw = 0;
+
+            // Pitch controls (Arrow Up / Down or I / K)
+            const kbPitchSign = invertPitch ? -1 : 1;
+            if (keys['ArrowUp'] || keys['KeyI']) droneState.pitch = 1 * kbPitchSign;
+            else if (keys['ArrowDown'] || keys['KeyK']) droneState.pitch = -1 * kbPitchSign;
+            else droneState.pitch = 0;
+
+            // Roll controls (Arrow Left / Right or J / L)
+            if (keys['ArrowLeft'] || keys['KeyJ']) droneState.roll = -1;
+            else if (keys['ArrowRight'] || keys['KeyL']) droneState.roll = 1;
+            else droneState.roll = 0;
+        }
+
+        // --- Physics & Flight Simulation ---
+        function updatePhysics(dt) {
+            if (controlMode === 'python') {
+                runPythonStep(dt);
+            } else {
+                pollGamepad();
+                handleKeyboard();
+            }
+
+            // Battery drain simulation
+            if (droneState.battery > 0 && (droneState.pos.y > 0.3 || Math.abs(droneState.throttle - 50) > 2)) {
+                droneState.battery = Math.max(0, droneState.battery - 0.001 * Math.max(0.25, droneState.throttle / 100));
+            }
+
+            // Target orientation based on stick input using YXZ Euler order to eliminate gimbal lock:
+            // Yaw (Y) -> Pitch (X) -> Roll (Z)
+            const maxTilt = Math.PI / 4.5; // ~40 degrees max tilt
+            const targetPitch = droneState.pitch * maxTilt;
+            const targetRoll = droneState.roll * maxTilt;
+
+            droneState.rotation.order = 'YXZ';
+            droneState.rotation.x = THREE.MathUtils.lerp(droneState.rotation.x, targetPitch, 0.2);
+            droneState.rotation.z = THREE.MathUtils.lerp(droneState.rotation.z, targetRoll, 0.2);
+
+            // Yaw rotation rate
+            const yawRate = 2.2;
+            droneState.rotation.y += droneState.yaw * yawRate * dt;
+
+            // Sync drone quaternion immediately from YXZ Euler rotation
+            droneMesh.quaternion.setFromEuler(droneState.rotation);
+
+            // Vertical Altitude-Hold Physics:
+            // throttle = 50% (throttleCmd = 0) holds exact altitude with zero vertical drift
+            const throttleCmd = (droneState.throttle - 50) / 50; // -1 (down) to +1 (up)
+            const verticalAccel = Math.abs(throttleCmd) < 0.02
+                ? -droneState.vel.y * 6.0 // Strong vertical damping to lock altitude in place
+                : throttleCmd * 16.0 - droneState.vel.y * 2.2;
+
+            // Horizontal flight acceleration along forward (+Z) and right (-X) heading vectors
+            const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), droneState.rotation.y);
+            const forwardDir = new THREE.Vector3(0, 0, 1).applyQuaternion(yawQuat);
+            const rightDir = new THREE.Vector3(-1, 0, 0).applyQuaternion(yawQuat);
+
+            const controlAuthority = 18.0;
+            const acceleration = new THREE.Vector3(0, verticalAccel, 0);
+            acceleration.addScaledVector(forwardDir, droneState.pitch * controlAuthority);
+            acceleration.addScaledVector(rightDir, droneState.roll * controlAuthority);
+
+            // Horizontal aerodynamic drag (brakes smoothly to a stationary hover when sticks are released)
+            acceleration.x -= droneState.vel.x * 1.8;
+            acceleration.z -= droneState.vel.z * 1.8;
+
+            // Integrate velocity & position
+            droneState.vel.addScaledVector(acceleration, dt);
+            droneState.pos.addScaledVector(droneState.vel, dt);
+
+            // Ground collision detection
+            if (droneState.pos.y < 0.25) {
+                droneState.pos.y = 0.25;
+                droneState.vel.y = Math.max(0, droneState.vel.y);
+                if (Math.abs(droneState.pitch) < 0.05 && Math.abs(droneState.roll) < 0.05) {
+                    droneState.vel.x *= 0.88;
+                    droneState.vel.z *= 0.88;
+                }
+            }
+
+            // Boundary limits
+            const limit = 180;
+            if (Math.abs(droneState.pos.x) > limit) { droneState.pos.x = Math.sign(droneState.pos.x) * limit; droneState.vel.x *= -0.5; }
+            if (Math.abs(droneState.pos.z) > limit) { droneState.pos.z = Math.sign(droneState.pos.z) * limit; droneState.vel.z *= -0.5; }
+            if (droneState.pos.y > 150) { droneState.pos.y = 150; droneState.vel.y = 0; }
+
+            // Update 3D Mesh Position (quaternion already synced above)
+            droneMesh.position.copy(droneState.pos);
+
+            // Spin Propellers dynamically using Quadcopter Motor Mixing (Throttle + Airborne Hover + Pitch/Roll/Yaw differential)
+            const isAirborne = droneState.pos.y > 0.32;
+            const controlEffort = Math.abs(droneState.pitch) + Math.abs(droneState.roll) + Math.abs(droneState.yaw);
+            const baseRpm = isAirborne
+                ? Math.max(38, (droneState.throttle / 100) * 55 + 15)
+                : (droneState.throttle > 52 || controlEffort > 0.05 ? (droneState.throttle / 100) * 45 + 15 : 0);
+
+            // Motor order: 0 = Front-Left (CW), 1 = Front-Right (CCW), 2 = Rear-Left (CCW), 3 = Rear-Right (CW)
+            const motorMix = [
+                -droneState.pitch + droneState.roll + droneState.yaw, // Front Left
+                -droneState.pitch - droneState.roll - droneState.yaw, // Front Right
+                 droneState.pitch + droneState.roll - droneState.yaw, // Rear Left
+                 droneState.pitch - droneState.roll + droneState.yaw  // Rear Right
+            ];
+
+            propellers.forEach((prop, idx) => {
+                const sign = (idx === 0 || idx === 3) ? 1 : -1;
+                const differential = motorMix[idx] * 18;
+                const rotorSpeed = (baseRpm > 0 || controlEffort > 0.05)
+                    ? Math.max(12, baseRpm + differential)
+                    : 0;
+                prop.rotation.y += rotorSpeed * sign * dt * 10;
+            });
+
+            // Update Chase Camera
+            updateCamera(dt);
+
+            // Update UI Telemetry
+            updateHUD();
+        }
+
+        // --- Smooth Chase Camera ---
+        function updateCamera(dt) {
+            const idealOffset = new THREE.Vector3(0, 2.5, -6).applyEuler(new THREE.Euler(0, droneState.rotation.y, 0));
+            const idealLookAt = droneState.pos.clone().add(new THREE.Vector3(0, 0.5, 0));
+
+            const targetCamPos = droneState.pos.clone().add(idealOffset);
+            camera.position.lerp(targetCamPos, 0.1);
+
+            // Smooth camera look-at
+            const currentLookAt = new THREE.Vector3();
+            camera.getWorldDirection(currentLookAt);
+            camera.lookAt(idealLookAt);
+        }
+
+        // --- HUD Telemetry Update ---
+        function updateHUD() {
+            document.getElementById('telemetry-alt').innerText = `${droneState.pos.y.toFixed(1)} m`;
+            document.getElementById('telemetry-speed').innerText = `${droneState.vel.length().toFixed(1)} m/s`;
+            document.getElementById('telemetry-throttle').innerText = `${Math.round(droneState.throttle)}%`;
+            
+            const batteryEl = document.getElementById('telemetry-battery');
+            const batVal = Math.round(droneState.battery);
+            batteryEl.innerText = `${batVal}%`;
+            if (batVal < 20) {
+                batteryEl.className = 'text-lg font-mono font-bold text-rose-500 animate-pulse';
+            }
+
+            // Update Live Stick Debugger Values & Visual Dots
+            const normThrottle = (droneState.throttle / 50) - 1; // -1 to +1
+            document.getElementById('debug-pitch').innerText = droneState.pitch.toFixed(2);
+            document.getElementById('debug-roll').innerText = droneState.roll.toFixed(2);
+            document.getElementById('debug-yaw').innerText = droneState.yaw.toFixed(2);
+            document.getElementById('debug-thr').innerText = normThrottle.toFixed(2);
+
+            const maxStickOffset = 20; // pixels within 56x56 stick circle
+            const leftDot = document.getElementById('stick-left-dot');
+            const rightDot = document.getElementById('stick-right-dot');
+            if (leftDot) {
+                leftDot.style.transform = `translate(${(-droneState.yaw * maxStickOffset).toFixed(1)}px, ${(-normThrottle * maxStickOffset).toFixed(1)}px)`;
+            }
+            if (rightDot) {
+                rightDot.style.transform = `translate(${(droneState.roll * maxStickOffset).toFixed(1)}px, ${(-droneState.pitch * maxStickOffset).toFixed(1)}px)`;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Main Animation Loop ---
+        let lastTime = 0;
+        function animate(timestamp = 0) {
+            requestAnimationFrame(animate);
+
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+            lastTime = timestamp;
+
+            if (dt > 0) {
+                updatePhysics(dt);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize on window load
+        window.onload = init;
+    </script>
+</body>
+</html>
