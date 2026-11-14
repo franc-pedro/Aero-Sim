@@ -1,9 +1,18 @@
 import { controlState, droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
+import { t } from '../i18n/index.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
 import { PYTHON_PRESETS } from './presets.js';
 
-const PYTHON_RUNTIME_MESSAGE = 'Python autopilot is disabled in this phase. Manual flight is available.';
+let consoleShowsDefaultMessage = true;
+
+function setDefaultConsoleMessage(consoleEl) {
+    if (!consoleEl) return;
+
+    consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
+    consoleEl.textContent = t('python.consoleDisabled');
+    consoleShowsDefaultMessage = true;
+}
 
 export function loadPythonPreset(name) {
     const editor = document.getElementById('python-code-editor');
@@ -29,11 +38,8 @@ export function initPythonUI() {
     const consoleEl = document.getElementById('python-console');
     const stopBtn = document.getElementById('btn-stop-python');
 
-    if (statusEl) statusEl.innerText = 'Pyodide runtime not included in this phase';
-    if (consoleEl) {
-        consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
-        consoleEl.innerText = PYTHON_RUNTIME_MESSAGE;
-    }
+    if (statusEl) statusEl.textContent = t('python.runtimeStatus');
+    setDefaultConsoleMessage(consoleEl);
     if (stopBtn) {
         stopBtn.disabled = true;
         stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -44,8 +50,17 @@ export function initPythonUI() {
 
 export function startPythonAutopilot() {
     if (!controlState.pythonRuntimeAvailable) {
-        showToast('Python runtime (Pyodide) is not included in this phase.', 'warning');
+        showToast('toast.pythonUnavailable', 'warning');
         return;
+    }
+}
+
+export function refreshPythonUI() {
+    const statusEl = document.getElementById('pyodide-status');
+    if (statusEl) statusEl.textContent = t('python.runtimeStatus');
+
+    if (consoleShowsDefaultMessage) {
+        setDefaultConsoleMessage(document.getElementById('python-console'));
     }
 }
 
@@ -70,8 +85,7 @@ export function stopPythonAutopilot() {
         stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
     if (consoleEl && controlState.mode === 'python') {
-        consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
-        consoleEl.innerText = PYTHON_RUNTIME_MESSAGE;
+        setDefaultConsoleMessage(consoleEl);
     }
 
     refreshFlightStatus();

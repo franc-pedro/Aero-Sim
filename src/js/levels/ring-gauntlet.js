@@ -38,6 +38,13 @@ export const ringGauntlet = {
     difficulty: 'Intermediate',
     order: 2,
     description: 'A climbing slalom of eight gates between the monoliths.',
+    i18n: {
+        'pt-PT': {
+            name: 'Circuito de Anéis',
+            difficulty: 'Intermédio',
+            description: 'Um slalom ascendente de oito portais entre os monólitos.',
+        },
+    },
     defaultTheme: 'sunset',
     spawn,
     bounds: { halfSize: 200, ceiling: 150 },

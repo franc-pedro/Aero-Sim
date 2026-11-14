@@ -1,4 +1,4 @@
-import { DEFAULT_LEVEL_ID, getLevel } from '../levels/index.js';
+import { DEFAULT_LEVEL_ID, getLevel, getLevelText } from '../levels/index.js';
 import { stopPythonAutopilot } from '../python/autopilot.js';
 import { buildLevel, disposeLevel } from '../scene/level-builder.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
@@ -56,7 +56,10 @@ export function createSession({ scene, world }) {
 
         refreshFlightStatus();
         setLevelInfo(def);
-        showToast(`Level: ${def.name} — ${def.difficulty}`, 'info');
+        showToast('toast.levelLoaded', 'info', () => {
+            const text = getLevelText(def);
+            return { name: text.name, difficulty: text.difficulty };
+        });
 
         return current;
     }

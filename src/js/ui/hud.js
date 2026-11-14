@@ -1,4 +1,5 @@
 import { droneState, gamepadState } from '../core/state.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 const TELEMETRY_INTERVAL = 1 / 12;
 const STICKS_INTERVAL = 1 / 30;
@@ -7,6 +8,7 @@ const AXES_INTERVAL_MS = 1000 / 30;
 let telemetryAccumulator = 1;
 let sticksAccumulator = 1;
 let lastAxesUpdate = 0;
+let lastAxes = null;
 
 const textCache = new Map();
 let batteryDangerState = null;
@@ -36,9 +38,11 @@ export function initAxesBars() {
     }
 }
 
-export function updateAxesBars(axes) {
+export function updateAxesBars(axes, force = false) {
+    lastAxes = axes;
+
     const now = performance.now();
-    if (now - lastAxesUpdate < AXES_INTERVAL_MS) return;
+    if (!force && now - lastAxesUpdate < AXES_INTERVAL_MS) return;
     lastAxesUpdate = now;
 
     for (let i = 0; i < 8; i++) {
@@ -68,8 +72,9 @@ export function updateAxesBars(axes) {
     const rawEl = document.getElementById('raw-axes-readout');
     if (rawEl) {
         const idx = gamepadState.detectedPitchAxisIndex;
-        const valStr = axes[idx] !== undefined ? axes[idx].toFixed(2) : 'N/A';
-        const text = `Pitch Ch: A${idx} (${valStr})`;
+        const text = axes[idx] !== undefined
+            ? t('hud.rawAxisValue', { channel: idx, value: axes[idx].toFixed(2) })
+            : t('hud.rawAxisNoValue', { channel: idx });
         if (rawEl.textContent !== text) rawEl.textContent = text;
     }
 }
@@ -86,8 +91,8 @@ export function updateHUD(dt) {
     if (updateTelemetry) {
         telemetryAccumulator = 0;
 
-        setText('telemetry-alt', `${droneState.renderPos.y.toFixed(1)} m`);
-        setText('telemetry-speed', `${droneState.vel.length().toFixed(1)} m/s`);
+        setText('telemetry-alt', `${formatNumber(droneState.renderPos.y, 1)} m`);
+        setText('telemetry-speed', `${formatNumber(droneState.vel.length(), 1)} m/s`);
         setText('telemetry-throttle', `${Math.round(droneState.throttle)}%`);
 
         const batVal = Math.round(droneState.battery);
@@ -129,5 +134,16 @@ export function updateHUD(dt) {
         if (rightDot) {
             rightDot.style.transform = `translate(${(droneState.roll * maxStickOffset).toFixed(1)}px, ${(-droneState.pitch * maxStickOffset).toFixed(1)}px)`;
         }
+    }
+}
+
+export function refreshHUD() {
+    textCache.clear();
+    telemetryAccumulator = 1;
+    sticksAccumulator = 1;
+    updateHUD(1);
+
+    if (lastAxes) {
+        updateAxesBars(lastAxes, true);
     }
 }

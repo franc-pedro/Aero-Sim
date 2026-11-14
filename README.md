@@ -27,10 +27,11 @@ src/css/theme.css       variáveis dos temas Daylight, Sunset e Night Ops
 src/js/main.js          bootstrap, cena Three.js, renderer e eventos
 src/js/config/          configuração dos temas
 src/js/core/            estado, sessão, loop de passo fixo e toast
+src/js/i18n/            catálogos e motor de tradução EN / PT-PT
 src/js/levels/          registo, RNG e definições dos níveis
 src/js/scene/           level builder e modelo do quadcopter
 src/js/controls/        teclado e gamepad
-src/js/ui/              tema, HUD, níveis e modos de controlo
+src/js/ui/              tema, HUD, níveis, idioma e modos
 src/js/python/          presets Python e estado do autopiloto
 src/js/simulation/      física de voo, colisões, portais e câmara
 public/favicon.svg      favicon local
@@ -99,6 +100,20 @@ Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáv
 
 O contador `GATES` no header acompanha os portais atravessados. Quando todos são passados surge uma notificação de percurso completo; passar pela moldura provoca crash e o reset limpa o progresso.
 
+## Idiomas
+
+A interface suporta **English** e **Português (Portugal)**. O seletor no header aplica a tradução imediatamente, sem reload, e guarda a escolha em `localStorage` (`aero-sim.locale`). Na primeira visita é usado o idioma do browser quando suportado; caso contrário, English.
+
+A implementação é local e não usa dependências externas:
+
+- `src/js/i18n/en.js` e `src/js/i18n/pt-PT.js` — catálogos de chaves planas;
+- `src/js/i18n/index.js` — `t()`, deteção, persistência, `formatNumber()` e aplicação de `data-i18n`;
+- `src/js/ui/language.js` — seletor de idioma.
+
+O HTML estático usa `data-i18n`, `data-i18n-title` e `data-i18n-aria-label`; os componentes dinâmicos são atualizados por `refreshLocalizedUI()` no `main.js`. Os números de telemetria e de impacto usam o formato da locale (`1,5` em PT-PT).
+
+O código Python, comentários dos presets, teclas, unidades e o overlay técnico `F3` mantêm-se em inglês. Para acrescentar um novo idioma: criar o catálogo, registá-lo em `src/js/i18n/index.js` e adicionar a locale ao seletor.
+
 ## Verificação manual rápida
 
 1. Abrir a aplicação e confirmar que o drone aparece sobre a grelha.
@@ -110,8 +125,10 @@ O contador `GATES` no header acompanha os portais atravessados. Quando todos sã
 7. Testar `R` e o botão **Reset Pos** depois de um crash; confirmar que o drone reaparece no spawn do nível atual e que os portais foram limpos.
 8. Trocar entre Training Course e Ring Gauntlet: confirmar spawn, limites, geometria e tema inicial próprios, sem erros.
 9. Alternar Daylight, Sunset e Night Ops em cada nível.
-10. Ligar um gamepad e confirmar o estado, os eixos e o invert de pitch.
-11. Abrir **Python Code** e confirmar que o editor/presets estão disponíveis mas a execução está bloqueada nesta fase.
+10. Trocar English ↔ Português (PT): confirmar que header, HUD, níveis, controlos, painel Python, gamepad, toasts e badges mudam sem reload.
+11. Recarregar a página com PT selecionado e confirmar a persistência, `html lang="pt-PT"` e o título do documento traduzido.
+12. Ligar um gamepad e confirmar o estado, os eixos e o invert de pitch.
+13. Abrir **Python Code** e confirmar que o editor/presets estão disponíveis mas a execução está bloqueada nesta fase; o código dos presets mantém-se em inglês.
 
 ## Licenças
 

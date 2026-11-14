@@ -8,13 +8,17 @@ import { SCENE_THEMES } from './config/themes.js';
 import { startLoop } from './core/loop.js';
 import { createSession } from './core/session.js';
 import { droneState } from './core/state.js';
-import { initGamepad } from './controls/gamepad.js';
+import { refreshToast } from './core/toast.js';
+import { initGamepad, refreshGamepadUI } from './controls/gamepad.js';
 import { initKeyboard } from './controls/keyboard.js';
+import { initI18n, onLocaleChange } from './i18n/index.js';
 import { DEFAULT_LEVEL_ID } from './levels/index.js';
-import { initPythonUI, loadPythonPreset, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
+import { initPythonUI, loadPythonPreset, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
 import { createQuadcopter } from './scene/quadcopter.js';
-import { initAxesBars } from './ui/hud.js';
-import { initLevelUI } from './ui/levels.js';
+import { refreshFlightStatus } from './ui/flight-status.js';
+import { initAxesBars, refreshHUD } from './ui/hud.js';
+import { initLanguageSelector } from './ui/language.js';
+import { initLevelUI, refreshLevelUI } from './ui/levels.js';
 import { setControlMode } from './ui/mode.js';
 import { applyTheme } from './ui/theme.js';
 
@@ -24,6 +28,9 @@ let renderer;
 let world;
 
 function init() {
+    initI18n();
+    initLanguageSelector();
+
     const defaultTheme = SCENE_THEMES.daylight;
 
     // 1. Scene Setup (Bright Daylight Default)
@@ -95,6 +102,18 @@ function init() {
     session.loadLevel(DEFAULT_LEVEL_ID);
     drone.group.position.copy(droneState.renderPos);
     drone.group.quaternion.copy(droneState.renderQuaternion);
+
+    function refreshLocalizedUI() {
+        const def = session.getCurrent()?.def;
+        refreshLevelUI(def);
+        refreshGamepadUI();
+        refreshPythonUI();
+        refreshFlightStatus();
+        refreshHUD();
+        refreshToast();
+    }
+
+    onLocaleChange(refreshLocalizedUI);
 
     // 7. Event Listeners
     window.addEventListener('resize', onWindowResize);

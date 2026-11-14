@@ -1,5 +1,6 @@
 import { droneState, gamepadState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
+import { t } from '../i18n/index.js';
 import { updateAxesBars } from '../ui/hud.js';
 
 const DEADZONE = 0.08;
@@ -17,20 +18,27 @@ export function updateGamepadUI(connected, name = '') {
 
     if (connected) {
         dot.className = 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]';
-        text.innerText = name ? `Connected: ${name.slice(0, 24)}` : 'Gamepad Connected';
+        text.textContent = name
+            ? t('gamepad.connectedWithName', { name: name.slice(0, 24) })
+            : t('gamepad.connected');
         text.className = 'text-xs font-semibold tracking-wider uppercase text-emerald-600 dark:text-emerald-300';
     } else {
         dot.className = 'w-3 h-3 rounded-full bg-rose-500 animate-pulse';
-        text.innerText = 'No Gamepad Connected';
+        text.textContent = t('gamepad.none');
         text.className = 'text-xs font-semibold tracking-wider uppercase theme-muted-text';
     }
+}
+
+export function refreshGamepadUI() {
+    updateGamepadUI(gamepadState.connected, gamepadState.name);
 }
 
 export function initGamepad() {
     window.addEventListener('gamepadconnected', (e) => {
         gamepadState.connected = true;
         gamepadState.activeIndex = e.gamepad.index;
-        showToast(`Gamepad Connected: ${e.gamepad.id}`, 'success');
+        gamepadState.name = e.gamepad.id;
+        showToast('toast.gamepadConnected', 'success', { name: e.gamepad.id });
         updateGamepadUI(true, e.gamepad.id);
     });
 
@@ -38,7 +46,8 @@ export function initGamepad() {
         if (gamepadState.activeIndex === e.gamepad.index) {
             gamepadState.connected = false;
             gamepadState.activeIndex = null;
-            showToast('Gamepad Disconnected. Switched to Keyboard.', 'warning');
+            gamepadState.name = '';
+            showToast('toast.gamepadDisconnected', 'warning');
             updateGamepadUI(false);
         }
     });
@@ -73,6 +82,7 @@ export function pollGamepad() {
             if (gamepads[i]) {
                 gp = gamepads[i];
                 gamepadState.activeIndex = i;
+                gamepadState.name = gp.id;
                 if (!gamepadState.connected) {
                     gamepadState.connected = true;
                     updateGamepadUI(true, gp.id);

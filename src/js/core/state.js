@@ -58,6 +58,7 @@ export const keys = {};
 export const gamepadState = {
     connected: false,
     activeIndex: null,
+    name: '',
     baselineAxes: [],
     selectedPitchAxis: 'auto',
     detectedPitchAxisIndex: 3,
@@ -113,6 +114,6 @@ export function resetDrone(spawn = null, { silent = false } = {}) {
     gamepadState.baselineAxes = [];
 
     if (!silent) {
-        showToast('Drone reset to launch pad (Altitude Hold active).', 'info');
+        showToast('toast.reset', 'info');
     }
 }

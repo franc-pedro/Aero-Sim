@@ -129,9 +129,12 @@ export function startLoop({ scene, camera, renderer, world }) {
         const objectives = droneState.objectives;
         if (objectives.gatesTotal > 0 && objectives.gatesPassed > lastGatesPassed) {
             if (objectives.gatesPassed >= objectives.gatesTotal) {
-                showToast('Course complete! All gates passed.', 'success');
+                showToast('toast.courseComplete', 'success');
             } else {
-                showToast(`Gate ${objectives.gatesPassed}/${objectives.gatesTotal}`, 'success');
+                showToast('toast.gate', 'success', {
+                    passed: objectives.gatesPassed,
+                    total: objectives.gatesTotal,
+                });
             }
         }
         lastGatesPassed = objectives.gatesPassed;

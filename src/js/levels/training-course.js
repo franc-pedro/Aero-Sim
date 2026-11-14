@@ -53,6 +53,13 @@ export const trainingCourse = {
     difficulty: 'Beginner',
     order: 1,
     description: 'Pillars and five floating gates over the training grid.',
+    i18n: {
+        'pt-PT': {
+            name: 'Curso de Treino',
+            difficulty: 'Iniciante',
+            description: 'Pilares e cinco portais flutuantes sobre a grelha de treino.',
+        },
+    },
     defaultTheme: 'daylight',
     spawn: { x: 0, y: 1.5, z: 0, yaw: 0 },
     bounds: { halfSize: 180, ceiling: 150 },
