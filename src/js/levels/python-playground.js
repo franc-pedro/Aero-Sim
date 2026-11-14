@@ -59,6 +59,8 @@ export const pythonPlayground = {
     ],
     objectives: { type: 'gates' },
     pythonMission: {
+        example: 'playground',
+        focus: 'sequence',
         title: {
             en: 'Playground Circuit',
             pt: 'Circuito do Playground',

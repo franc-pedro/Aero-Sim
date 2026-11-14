@@ -1,6 +1,6 @@
 # Guia do Professor — Laboratório Python
 
-Este guia acompanha o **AERO-SIM 1.5.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
+Este guia acompanha o **AERO-SIM 1.6.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
 
 ## 1. O que os alunos aprendem
 
@@ -16,6 +16,17 @@ O laboratório permite trabalhar, de forma progressiva:
 - noções de orientação espacial, distância e ângulo.
 
 A API Python é compatível com o subconjunto da **djitellopy**. O código pode ser reutilizado num Tello real, desde que o aluno passe a usar a biblioteca real e um drone físico.
+
+## Percurso de missões
+
+| Nível | Conceito | Portais | Plataforma |
+|---|---|---|---|
+| Python Playground | Sequência | 3 | Verde, no fim |
+| Loop Lagoon | Ciclos `for` | 4 | Regresso à origem |
+| Function Forge | Funções | 8 (duas voltas) | Regresso à origem |
+| Obstacle Alley | Obstáculos e direção | 3 | Verde, no fim |
+
+O nível **Training Course** e o **Ring Gauntlet** continuam disponíveis como voo livre e desafios manuais.
 
 ## 2. Requisitos
 
@@ -130,9 +141,15 @@ O botão **Hints** mostra quatro dicas. Uma boa sequência de intervenção:
 3. Pedir ao aluno para dividir o percurso em etapas: subir, avançar, subir, avançar…
 4. Só depois mostrar a solução completa.
 
-## 6. Segunda aula — ciclos e funções
+## 6. Loop Lagoon — ciclos
 
-Exemplo **Square**:
+O nível **Loop Lagoon** introduz o ciclo `for` com um quadrado de quatro lados e quatro portais.
+
+Objetivo:
+
+> Descolar, percorrer o quadrado de 6 m e aterrar na plataforma verde.
+
+Solução de referência:
 
 ```python
 from djitellopy import Tello
@@ -140,9 +157,12 @@ from djitellopy import Tello
 tello = Tello()
 tello.connect()
 tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
 
 for _ in range(4):
-    tello.move_forward(100)
+    tello.move_forward(300)
+    tello.move_forward(300)
     tello.rotate_clockwise(90)
 
 tello.land()
@@ -151,18 +171,115 @@ tello.end()
 
 Progressão:
 
-1. Escrever o quadrado sem ciclo.
-2. Substituir a repetição por `for`.
-3. Pedir uma função `quadrado(tamanho)`.
-4. Experimentar `tamanho=150` ou `set_speed(75)`.
+1. Escrever um lado do quadrado sem ciclo.
+2. Identificar a repetição e introduzir `for _ in range(4):`.
+3. Pedir uma função `quadrado()` que faça o ciclo.
+4. Alterar a ordem de `move_forward` e `rotate_clockwise` e discutir o resultado.
 
 Perguntas:
 
 - Quantas vezes o ciclo corre?
 - O que acontece se usarmos `range(3)`?
 - Porque precisamos de rodar 90 graus?
+- Porque são precisos dois `move_forward(300)` em cada lado?
 
-## 7. Terceira aula — sensores e condições
+## 7. Function Forge — funções
+
+O nível **Function Forge** repete o quadrado a duas altitudes. A mesma função é chamada duas vezes.
+
+Objetivo:
+
+> Usar uma função reutilizável para repetir o quadrado a 4 m e a 11 m e aterrar na plataforma.
+
+Solução de referência:
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
+
+def fly_square():
+    for _ in range(4):
+        tello.move_forward(300)
+        tello.move_forward(300)
+        tello.rotate_clockwise(90)
+
+fly_square()
+
+tello.move_up(500)
+tello.move_up(200)
+fly_square()
+
+tello.land()
+tello.end()
+```
+
+Progressão:
+
+1. Fazer a primeira volta sem função.
+2. Extrair o bloco repetido para `fly_square()`.
+3. Chamar a função uma vez e confirmar os quatro portais.
+4. Subir 700 cm e chamar a função outra vez.
+5. Discutir o que aconteceria se a função estivesse escrita duas vezes.
+
+Perguntas:
+
+- Que vantagem há em definir a função?
+- O que acontece se mudarmos o tamanho do lado dentro da função?
+- A função altera a posição do drone ou apenas descreve os passos?
+
+## 8. Obstacle Alley — obstáculos
+
+O nível **Obstacle Alley** adiciona torres e um zig-zag de três portais. O aluno tem de ajustar a direção e aterrar na plataforma verde no final.
+
+Objetivo:
+
+> Seguir o zig-zag entre as torres e aterrar na plataforma verde depois do terceiro anel.
+
+Solução de referência:
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
+
+tello.move_forward(500)
+tello.rotate_clockwise(45)
+
+tello.move_forward(500)
+tello.move_forward(200)
+tello.rotate_counter_clockwise(45)
+
+tello.move_forward(500)
+tello.move_forward(300)
+
+tello.land()
+tello.end()
+```
+
+Progressão:
+
+1. Fazer o primeiro portal em linha reta.
+2. Introduzir a rotação de 45 graus e o segundo portal.
+3. Corrigir a rotação seguinte e explicar porque não se roda 90 graus.
+4. Ajustar a distância até à plataforma verde.
+5. Comparar uma trajetória que passa perto das torres com a trajetória central.
+
+Perguntas:
+
+- Porque não podemos rodar 90 graus no segundo portal?
+- O que acontece se avançarmos demasiado?
+- Como podemos confirmar a direção antes de avançar?
+
+## 9. Sensores e condições
 
 Exemplo **Sensors**:
 
@@ -203,7 +320,7 @@ while tello.get_height() < 150:
 
 O `time.sleep()` não bloqueia o simulador e pode ser interrompido com **Stop**.
 
-## 8. Quarta aula — controlo contínuo
+## 10. Controlo contínuo
 
 `send_rc_control(left_right, forward_backward, up_down, yaw)` envia valores entre -100 e 100. Deve ser chamado repetidamente num ciclo:
 
@@ -223,7 +340,7 @@ Atividades:
 - fazer um slalom;
 - comparar `move_forward()` com `send_rc_control()`.
 
-## 9. Erros comuns e ajuda
+## 11. Erros comuns e ajuda
 
 O editor marca a linha e mostra uma dica. A consola mantém o traceback completo para consulta.
 
@@ -239,7 +356,7 @@ O editor marca a linha e mostra uma dica. A consola mantém o traceback completo
 
 O botão **Stop** interrompe o script. Se o drone estiver a voar, aterra automaticamente. O **Reset Pos** repõe a missão e o drone no início.
 
-## 10. Gestão da aula
+## 12. Gestão da aula
 
 - Cada aluno pode usar o seu próprio browser; o código fica guardado nesse browser.
 - Não há contas nem envio de dados.
@@ -255,7 +372,7 @@ Se o Python não carregar:
 3. recarregar a página;
 4. verificar a consola de desenvolvimento.
 
-## 11. Avaliação sugerida
+## 13. Avaliação sugerida
 
 | Critério | Indicador |
 |---|---|
@@ -265,7 +382,7 @@ Se o Python não carregar:
 | Abstração | O aluno usa um ciclo ou função para evitar repetição |
 | Autonomia | O aluno consulta a API e as dicas antes de pedir solução |
 
-## 12. Limitações atuais
+## 14. Limitações atuais
 
 - Apenas a biblioteca padrão do Python está disponível.
 - Vídeo, enxames, mission pads e `control_step(state, dt)` não estão implementados.

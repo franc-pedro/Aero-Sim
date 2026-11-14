@@ -27,7 +27,7 @@
                     <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
                     <p class="text-xs theme-muted-text">
                         <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.5</span> ·
+                        <span>v1.6</span> ·
                         <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
                     </p>
                 </div>
@@ -234,6 +234,9 @@
             <div class="flex items-center gap-1.5 shrink-0">
                 <select id="python-preset-select" aria-label="Python example" data-i18n-aria-label="python.presetLabel" class="sub-card theme-accent-text font-mono text-[11px] font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer max-w-[150px]">
                     <option value="playground" data-i18n="python.preset.playground">Example: Mission</option>
+                    <option value="loop" data-i18n="python.preset.loop">Example: Loops</option>
+                    <option value="functions" data-i18n="python.preset.functions">Example: Functions</option>
+                    <option value="obstacles" data-i18n="python.preset.obstacles">Example: Obstacles</option>
                     <option value="square" data-i18n="python.preset.square">Example: Square</option>
                     <option value="hello" data-i18n="python.preset.hello">Example: First Flight</option>
                     <option value="sensors" data-i18n="python.preset.sensors">Example: Sensors</option>
@@ -249,6 +252,7 @@
             <div class="python-mission-head">
                 <span class="python-mission-tag" data-i18n="python.mission">Mission</span>
                 <strong id="python-mission-title" class="python-mission-title"></strong>
+                <span id="python-mission-focus" class="python-mission-focus hidden"></span>
                 <span id="python-mission-progress" class="python-mission-progress"></span>
             </div>
             <p id="python-mission-objective" class="python-mission-objective"></p>

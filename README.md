@@ -1,6 +1,6 @@
 # AERO-SIM
 
-**Versão atual: 1.5.0**
+**Versão atual: 1.6.0**
 
 Simulador de voo de um quadcopter, agora servido como aplicação Vite com HTML, CSS e JavaScript separados.
 
@@ -63,7 +63,12 @@ O modo **Python Code** abre um laboratório em split-screen: a simulação fica 
 O laboratório já inclui:
 
 - **CodeMirror 6** com highlighting, números de linha, autocomplete, pesquisa, indentação com Tab e `Ctrl+Enter` para executar.
-- **Missão guiada** no nível Python Playground: objetivo, progresso dos portais, dicas e critério de aterragem.
+- **Quatro missões guiadas** com progressão pedagógica:
+  - **Python Playground** — sequência;
+  - **Loop Lagoon** — ciclos `for`;
+  - **Function Forge** — funções;
+  - **Obstacle Alley** — obstáculos e direção.
+- **Missão guiada** com objetivo, progresso dos portais, dicas, etiqueta do conceito e critério de aterragem.
 - **Consola** com `print`, avisos e erros; botão para limpar.
 - **Referência da API Tello** bilingue: clicar num método insere o exemplo no editor.
 - **Diagnóstico de erros**: a linha com erro fica marcada no editor, o traceback aparece na consola e surge uma dica pedagógica traduzida.
@@ -73,7 +78,7 @@ O laboratório já inclui:
 - **Layout split-screen** com redimensionamento do canvas e modo mobile.
 - **Fecho do laboratório** com o botão X ou com o modo **Manual**.
 
-O nível inicial é o **Python Playground**, com uma missão de três anéis e uma plataforma verde de aterragem. O guia pedagógico completo está em [`docs/python-lab.md`](docs/python-lab.md).
+O nível inicial é o **Python Playground**. Cada nível de missão carrega um exemplo de arranque com `TODO`; o guia pedagógico completo está em [`docs/python-lab.md`](docs/python-lab.md).
 
 O runtime Python é o mesmo da fase anterior:
 
@@ -97,7 +102,7 @@ Em browsers sem suporte, o painel mostra um aviso e o modo Manual continua a fun
 
 `connect`, `end`, `takeoff`, `land`, `emergency`, `move_forward/back/left/right/up/down`, `rotate_clockwise/counter_clockwise`, `set_speed`, `send_rc_control`, `get_battery`, `get_height`, `get_distance_tof`, `get_baro`, `get_temperature`, `get_attitude`, `get_yaw/pitch/roll`, `get_velocity_x/y/z`, `get_flight_time` e `time.sleep`.
 
-Ainda não suportado: vídeo (`streamon`, `get_frame_read`), enxames, mission pads do Tello, `throw_takeoff`, curvas e a API antiga `control_step(state, dt)`. Os exemplos `playground`, `square`, `hello` e `sensors` usam a API djitellopy.
+Ainda não suportado: vídeo (`streamon`, `get_frame_read`), enxames, mission pads do Tello, `throw_takeoff`, curvas e a API antiga `control_step(state, dt)`. Os exemplos `playground`, `loop`, `functions`, `obstacles`, `square`, `hello` e `sensors` usam a API djitellopy.
 
 Nesta fase só está disponível a biblioteca padrão do Python; não são descarregados pacotes externos nem usados CDNs. `input()` também ainda não está implementado.
 
@@ -136,7 +141,10 @@ Os níveis vivem em `src/js/levels/` e são registados em `src/js/levels/index.j
 
 Níveis incluídos:
 
-- **Python Playground** — tema Daylight, percurso compacto de 3 portais, plataforma verde de aterragem e missão guiada. É o nível inicial.
+- **Python Playground** — tema Daylight, 3 portais em linha reta, plataforma verde e missão de sequência.
+- **Loop Lagoon** — tema Sunset, 4 portais num quadrado de 6 m e missão de ciclos.
+- **Function Forge** — tema Night Ops, 8 portais em duas voltas a altitudes diferentes e missão de funções.
+- **Obstacle Alley** — tema Sunset, 3 portais em zig-zag entre torres e missão de obstáculos.
 - **Training Course** — tema Daylight, 30 pilares e 5 portais sobre a grelha.
 - **Ring Gauntlet** — tema Sunset, 8 portais em subida, torres e monólitos decorativos.
 
@@ -157,6 +165,8 @@ export const myLevel = {
     landingPad: { x: 0, z: 0, radius: 2.5 },
     missionPad: { x: 0, z: 15, radius: 3, color: 0x10b981 },
     pythonMission: {
+        example: 'loop',
+        focus: 'loops',
         title: { en: 'My Mission', 'pt-PT': 'A Minha Missão' },
         objective: { en: '...', 'pt-PT': '...' },
         hints: [{ en: '...', 'pt-PT': '...' }],
@@ -166,7 +176,7 @@ export const myLevel = {
 };
 ```
 
-`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência. Para adicionar um nível basta criar o ficheiro em `src/js/levels/` e registá-lo em `src/js/levels/index.js`.
+`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. `pythonMission.example` indica a chave do exemplo de arranque em `src/js/python/presets.js` e `pythonMission.focus` escolhe a etiqueta pedagógica (`sequence`, `loops`, `functions` ou `obstacles`). Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência. Para adicionar um nível basta criar o ficheiro em `src/js/levels/` e registá-lo em `src/js/levels/index.js`.
 
 O contador `GATES` no header acompanha os portais atravessados. Quando todos são passados surge uma notificação de percurso completo; passar pela moldura provoca crash e o reset limpa o progresso.
 
@@ -193,7 +203,7 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 5. Embater num pilar e num anel: confirmar o shake, a vinheta, a queda/tombamento e o estado `CRASHED`.
 6. Atravessar o centro de um anel sem tocar na moldura, confirmar o incremento do contador `GATES` e a notificação de percurso completo.
 7. Testar `R` e o botão **Reset Pos** depois de um crash; confirmar que o drone reaparece no spawn do nível atual e que os portais foram limpos.
-8. Trocar entre Python Playground, Training Course e Ring Gauntlet: confirmar spawn, limites, geometria, missão e tema inicial próprios, sem erros.
+8. Trocar entre Python Playground, Loop Lagoon, Function Forge, Obstacle Alley, Training Course e Ring Gauntlet: confirmar spawn, limites, geometria, missão e tema inicial próprios, sem erros.
 9. Alternar Daylight, Sunset e Night Ops em cada nível.
 10. Trocar English ↔ Português (PT): confirmar que header, HUD, níveis, controlos, painel Python, gamepad, toasts e badges mudam sem reload.
 11. Recarregar a página com PT selecionado e confirmar a persistência, `html lang="pt-PT"` e o título do documento traduzido.
@@ -208,10 +218,13 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 20. Escrever `tello.` no editor e confirmar as sugestões de autocomplete.
 21. Editar o código, recarregar a página e confirmar que o draft do nível é retomado; trocar de nível e confirmar que cada nível tem o seu código.
 22. Descarregar o `.py` e voltar a abri-lo com o botão de upload.
-23. Executar a solução da missão no Playground: confirmar a progressão `1/3`, `2/3`, `3/3`, a aterragem na plataforma verde e o toast **Mission complete**.
-24. Provocar um crash com `tello.emergency()`: confirmar o estado vermelho da missão, o badge `CRASHED` e que **Reset Pos** repõe `0/3`.
-25. Premir **Reset Pos** e confirmar que o drone volta ao chão; fechar o laboratório com **X** e confirmar o spawn normal e o controlo manual.
-26. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
+23. Executar a solução da missão no **Python Playground**: confirmar a progressão `1/3`, `2/3`, `3/3`, a aterragem na plataforma verde e o toast **Mission complete**.
+24. Executar a solução de **Loop Lagoon**: confirmar `4/4`, a etiqueta **Loops** e a aterragem na plataforma.
+25. Executar a solução de **Function Forge**: confirmar `8/8`, a etiqueta **Functions** e a aterragem após a segunda volta.
+26. Executar a solução de **Obstacle Alley**: confirmar `3/3`, a etiqueta **Obstacles** e a aterragem na plataforma verde final.
+27. Provocar um crash com `tello.emergency()`: confirmar o estado vermelho da missão, o badge `CRASHED` e que **Reset Pos** repõe `0/x`.
+28. Premir **Reset Pos** e confirmar que o drone volta ao chão; fechar o laboratório com **X** e confirmar o spawn normal e o controlo manual.
+29. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
 
 ## Licenças
 

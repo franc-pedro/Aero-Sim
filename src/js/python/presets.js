@@ -1,4 +1,58 @@
 export const PYTHON_PRESETS = {
+    loop: `from djitellopy import Tello
+
+# Mission: fly a square through four gates using a loop.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
+
+for _ in range(4):
+    # TODO: move forward 600 cm (two move_forward(300)) and rotate 90 degrees.
+    pass
+
+tello.land()
+tello.end()`,
+    functions: `from djitellopy import Tello
+
+# Mission: reuse a square function at two altitudes.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
+
+def fly_square():
+    for _ in range(4):
+        # TODO: draw one 600 cm side (two move_forward(300)).
+        pass
+
+fly_square()
+
+# TODO: climb 700 cm and call fly_square() again.
+# tello.move_up(500)
+# tello.move_up(200)
+# fly_square()
+
+tello.land()
+tello.end()`,
+    obstacles: `from djitellopy import Tello
+
+# Mission: follow the zig-zag between the towers.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.move_up(300)
+tello.set_speed(100)
+
+# TODO: fly through the three gates.
+# Hint: turn 45 degrees after the first ring.
+# tello.move_forward(500)
+# tello.rotate_clockwise(45)
+
+tello.land()
+tello.end()`,
     playground: `from djitellopy import Tello
 
 # Mission: pass through all three rings and land back on the pad.

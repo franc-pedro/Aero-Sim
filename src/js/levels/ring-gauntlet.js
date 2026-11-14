@@ -36,7 +36,7 @@ export const ringGauntlet = {
     id: 'ring-gauntlet',
     name: 'Ring Gauntlet',
     difficulty: 'Intermediate',
-    order: 2,
+    order: 5,
     description: 'A climbing slalom of eight gates between the monoliths.',
     i18n: {
         'pt-PT': {

@@ -51,7 +51,7 @@ export const trainingCourse = {
     id: 'training-course',
     name: 'Training Course',
     difficulty: 'Beginner',
-    order: 1,
+    order: 4,
     description: 'Pillars and five floating gates over the training grid.',
     i18n: {
         'pt-PT': {

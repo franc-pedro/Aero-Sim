@@ -1,6 +1,6 @@
 import { droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
-import { getLocale } from '../i18n/index.js';
+import { getLocale, t } from '../i18n/index.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { isTelloFlightActive } from './commands.js';
 
@@ -46,11 +46,14 @@ function isOnPad() {
 }
 
 function buildView() {
+    const focus = missionDef?.focus || null;
     return {
         visible: Boolean(missionDef),
         title: localize(missionDef?.title),
         objective: localize(missionDef?.objective),
         hints: (missionDef?.hints || []).map(localize),
+        focus,
+        focusLabel: focus ? t(`python.focus.${focus}`) : '',
         gatesPassed: state.gatesPassed,
         gatesTotal: state.gatesTotal,
         airborne: state.airborne,

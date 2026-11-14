@@ -1,11 +1,13 @@
 import { showToast } from '../core/toast.js';
 import { getLocale, t } from '../i18n/index.js';
+import { getLevel } from '../levels/index.js';
 import {
     TELLO_API_GROUPS,
     TELLO_METHODS,
     getApiDescription,
     getApiGroupLabel,
 } from '../python/api-reference.js';
+import { PYTHON_PRESETS } from '../python/presets.js';
 
 const STORAGE_PREFIX = 'aero-sim.python.code.';
 const SAVE_DELAY_MS = 450;
@@ -102,7 +104,7 @@ function scheduleSave() {
 
 export function setPythonLevel(levelId) {
     const nextLevelId = levelId || getCurrentLevelId();
-    if (currentLevelId && currentLevelId !== nextLevelId) {
+    if (view && currentLevelId) {
         saveCurrentCode();
     }
     currentLevelId = nextLevelId;
@@ -113,6 +115,13 @@ export function setPythonLevel(levelId) {
     if (saved !== null) {
         setPythonCode(saved, { save: false });
         setPresetSelection('custom');
+        return;
+    }
+
+    const example = getLevel(currentLevelId)?.pythonMission?.example || 'square';
+    if (example && PYTHON_PRESETS[example]) {
+        setPythonCode(PYTHON_PRESETS[example], { save: false });
+        setPresetSelection(example);
     }
 }
 
@@ -294,6 +303,7 @@ export function setPythonMission(view) {
     }
 
     const titleEl = document.getElementById('python-mission-title');
+    const focusEl = document.getElementById('python-mission-focus');
     const objectiveEl = document.getElementById('python-mission-objective');
     const progressEl = document.getElementById('python-mission-progress');
     const statusEl = document.getElementById('python-mission-status');
@@ -309,6 +319,10 @@ export function setPythonMission(view) {
     panel.classList.toggle('python-mission-failed', view.failed);
 
     if (titleEl) titleEl.textContent = view.title;
+    if (focusEl) {
+        focusEl.textContent = view.focusLabel || '';
+        focusEl.classList.toggle('hidden', !view.focusLabel);
+    }
     if (objectiveEl) objectiveEl.textContent = view.objective;
     if (progressEl) {
         progressEl.textContent = t('python.missionProgress', {
@@ -389,9 +403,18 @@ export async function ensurePythonLab() {
 
         cmModules = { EditorView, setDiagnostics };
         const saved = currentLevelId ? readSavedCode(currentLevelId) : null;
-        const initialCode = saved !== null ? saved : pendingCode;
+        const missionExample = currentLevelId
+            ? (getLevel(currentLevelId)?.pythonMission?.example || 'square')
+            : null;
+        const missionCode = missionExample ? PYTHON_PRESETS[missionExample] : null;
+        const defaultCode = missionCode || pendingCode;
+        const initialCode = saved !== null ? saved : defaultCode;
         pendingCode = initialCode;
-        if (saved !== null) setPresetSelection('custom');
+        if (saved !== null) {
+            setPresetSelection('custom');
+        } else if (missionExample) {
+            setPresetSelection(missionExample);
+        }
 
         view = new EditorView({
             parent: container,

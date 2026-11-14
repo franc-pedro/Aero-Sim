@@ -1,9 +1,19 @@
 import { getLocale } from '../i18n/index.js';
+import { functionForge } from './function-forge.js';
+import { loopLagoon } from './loop-lagoon.js';
+import { obstacleAlley } from './obstacle-alley.js';
 import { pythonPlayground } from './python-playground.js';
 import { ringGauntlet } from './ring-gauntlet.js';
 import { trainingCourse } from './training-course.js';
 
-export const LEVELS = [pythonPlayground, trainingCourse, ringGauntlet].sort((a, b) => a.order - b.order);
+export const LEVELS = [
+    pythonPlayground,
+    loopLagoon,
+    functionForge,
+    obstacleAlley,
+    trainingCourse,
+    ringGauntlet,
+].sort((a, b) => a.order - b.order);
 export const DEFAULT_LEVEL_ID = LEVELS[0].id;
 
 export function getLevel(id) {
