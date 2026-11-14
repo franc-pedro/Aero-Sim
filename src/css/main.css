@@ -1,0 +1,60 @@
+@import './theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-primary);
+        transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    #canvas-container {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+    }
+}
+
+@layer components {
+    .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+    }
+
+    .sub-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: background 0.35s ease, border-color 0.35s ease;
+    }
+
+    .theme-accent-text {
+        color: var(--accent);
+    }
+
+    .theme-accent-bg {
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+
+    .theme-muted-text {
+        color: var(--text-secondary);
+    }
+
+    #stick-left-dot {
+        transform: translate(0px, 20px);
+    }
+
+    .axis-bar {
+        width: 0%;
+        margin-left: 50%;
+    }
+}
