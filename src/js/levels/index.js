@@ -1,8 +1,9 @@
 import { getLocale } from '../i18n/index.js';
+import { pythonPlayground } from './python-playground.js';
 import { ringGauntlet } from './ring-gauntlet.js';
 import { trainingCourse } from './training-course.js';
 
-export const LEVELS = [trainingCourse, ringGauntlet].sort((a, b) => a.order - b.order);
+export const LEVELS = [pythonPlayground, trainingCourse, ringGauntlet].sort((a, b) => a.order - b.order);
 export const DEFAULT_LEVEL_ID = LEVELS[0].id;
 
 export function getLevel(id) {

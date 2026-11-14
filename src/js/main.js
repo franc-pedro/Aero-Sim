@@ -20,6 +20,7 @@ import { initAxesBars, refreshHUD } from './ui/hud.js';
 import { initLanguageSelector } from './ui/language.js';
 import { initLevelUI, refreshLevelUI } from './ui/levels.js';
 import { setControlMode } from './ui/mode.js';
+import { initPythonLab, setPythonLevel } from './ui/python-lab.js';
 import { applyTheme } from './ui/theme.js';
 
 let scene;
@@ -102,10 +103,12 @@ function init() {
     initPythonUI();
     initLevelUI({ onSelect: (id) => {
         session.loadLevel(id);
+        setPythonLevel(id);
         refreshPythonUI();
     } });
 
     session.loadLevel(DEFAULT_LEVEL_ID);
+    setPythonLevel(document.getElementById('level-select').value);
     drone.group.position.copy(droneState.renderPos);
     drone.group.quaternion.copy(droneState.renderQuaternion);
 
@@ -122,19 +125,37 @@ function init() {
     onLocaleChange(refreshLocalizedUI);
 
     // 7. Event Listeners
-    window.addEventListener('resize', onWindowResize);
+    window.addEventListener('resize', scheduleRendererResize);
+    const canvasContainer = document.getElementById('canvas-container');
+    if (canvasContainer && typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(scheduleRendererResize).observe(canvasContainer);
+    }
 
-    document.getElementById('mode-btn-manual').addEventListener('click', () => {
+    function enterManualMode() {
         setControlMode('manual');
         session.reset({ silent: true });
         refreshPythonUI();
-    });
-    document.getElementById('mode-btn-python').addEventListener('click', () => {
+    }
+
+    function enterPythonMode() {
         session.preparePython();
         setControlMode('python');
+        setPythonLevel(document.getElementById('level-select').value);
+        initPythonLab({
+            onRun: startPythonAutopilot,
+            onStop: stopPythonAutopilot,
+            onReset: () => {
+                session.reset();
+                refreshPythonUI();
+            },
+        });
         preloadPythonRuntime();
         refreshPythonUI();
-    });
+    }
+
+    document.getElementById('mode-btn-manual').addEventListener('click', enterManualMode);
+    document.getElementById('mode-btn-python').addEventListener('click', enterPythonMode);
+    document.getElementById('btn-close-python-lab').addEventListener('click', enterManualMode);
 
     document.getElementById('theme-btn-daylight').addEventListener('click', () => applyTheme('daylight', world));
     document.getElementById('theme-btn-sunset').addEventListener('click', () => applyTheme('sunset', world));
@@ -152,11 +173,27 @@ function init() {
     startLoop({ scene, camera, renderer, world });
 }
 
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
+function scheduleRendererResize() {
+    if (rendererResizeFrame) return;
+    rendererResizeFrame = requestAnimationFrame(() => {
+        rendererResizeFrame = null;
+        resizeRenderer();
+    });
+}
+
+function resizeRenderer() {
+    const container = document.getElementById('canvas-container');
+    if (!container || !camera || !renderer) return;
+
+    const width = Math.max(1, Math.round(container.clientWidth));
+    const height = Math.max(1, Math.round(container.clientHeight));
+
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
 }
+
+let rendererResizeFrame = null;
 
 init();

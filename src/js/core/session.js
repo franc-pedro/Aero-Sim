@@ -1,6 +1,7 @@
 import { DEFAULT_LEVEL_ID, getLevel, getLevelText } from '../levels/index.js';
 import { stopPythonAutopilot } from '../python/autopilot.js';
 import { resetTelloCommandState } from '../python/commands.js';
+import { resetMission, setMissionLevel } from '../python/mission.js';
 import { buildLevel, disposeLevel } from '../scene/level-builder.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
@@ -64,6 +65,7 @@ export function createSession({ scene, world }) {
 
         applyTheme(themeName, world);
         resetDrone(getSpawnForMode(), { silent: true });
+        setMissionLevel(def);
 
         refreshFlightStatus();
         setLevelInfo(def);
@@ -84,6 +86,7 @@ export function createSession({ scene, world }) {
         resetTelloCommandState();
         resetObjectives();
         resetDrone(getSpawnForMode(), { silent });
+        resetMission();
         refreshFlightStatus();
     }
 
@@ -100,6 +103,7 @@ export function createSession({ scene, world }) {
             { ...current.spawn, y: GROUND_HEIGHT },
             { silent: true }
         );
+        resetMission();
         refreshFlightStatus();
     }
 

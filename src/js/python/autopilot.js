@@ -3,12 +3,23 @@ import { showToast } from '../core/toast.js';
 import { t } from '../i18n/index.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
 import {
+    clearPythonDiagnostic,
+    ensurePythonLab,
+    getPythonCode,
+    refreshPythonLab,
+    setPythonCode,
+    setPythonDiagnostic,
+    setPythonMission,
+} from '../ui/python-lab.js';
+import {
     abortTelloCommand,
     executeTelloCommand,
     isTelloFlightActive,
     TelloCommandError,
     updateTelloCommand,
 } from './commands.js';
+import { describePythonError } from './errors.js';
+import { initMissionUI, refreshMissionUI, updateMission } from './mission.js';
 import { PYTHON_PRESETS } from './presets.js';
 
 let worker = null;
@@ -37,10 +48,10 @@ function setDefaultConsoleMessage() {
     const consoleEl = getConsole();
     if (!consoleEl) return;
 
-    consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
     consoleEl.textContent = t(controlState.pythonRuntimeAvailable
         ? 'python.consoleReady'
         : 'python.consoleUnsupported');
+    consoleEl.classList.remove('python-console-error');
     consoleShowsDefaultMessage = true;
 }
 
@@ -48,7 +59,12 @@ function clearConsole() {
     const consoleEl = getConsole();
     if (!consoleEl) return;
     consoleEl.textContent = '';
+    consoleEl.classList.remove('python-console-error');
     consoleShowsDefaultMessage = false;
+}
+
+export function clearPythonConsole() {
+    clearConsole();
 }
 
 function appendConsole(text, { error = false } = {}) {
@@ -60,10 +76,7 @@ function appendConsole(text, { error = false } = {}) {
         consoleShowsDefaultMessage = false;
     }
 
-    consoleEl.className = error
-        ? 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap text-rose-400'
-        : 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
-
+    consoleEl.classList.toggle('python-console-error', error);
     consoleEl.textContent += `${text.replace(/\s+$/, '')}\n`;
     if (consoleEl.textContent.length > 12000) {
         consoleEl.textContent = consoleEl.textContent.slice(-12000);
@@ -101,6 +114,7 @@ function setRunButtonState() {
     const busy = runtimeStatus === 'loading' || runtimeStatus === 'running' || runtimeStatus === 'stopping';
     const canRun = controlState.pythonRuntimeAvailable
         && !busy
+        && !starting
         && !autoLanding
         && droneState.flight.status !== 'crashed';
     const canStop = controlState.pythonRunning || runtimeStatus === 'running';
@@ -252,6 +266,17 @@ function handleWorkerMessage(message) {
             if (message.status === 'stopped') {
                 appendConsole(t('python.consoleStopped'));
             }
+            if (message.status === 'error') {
+                const info = describePythonError(message.message);
+                if (info.line) {
+                    setPythonDiagnostic(info.line, info.hint);
+                } else {
+                    clearPythonDiagnostic();
+                }
+                appendConsole(`${t('python.hintPrefix')} ${info.hint}`);
+            } else {
+                clearPythonDiagnostic();
+            }
             if (!autoLandIfNeeded()) {
                 setRuntimeStatus('ready');
             }
@@ -308,10 +333,12 @@ export function preloadPythonRuntime() {
 }
 
 export function loadPythonPreset(name) {
-    const editor = document.getElementById('python-code-editor');
-    if (editor && PYTHON_PRESETS[name]) {
-        editor.value = PYTHON_PRESETS[name];
-    }
+    if (!PYTHON_PRESETS[name]) return;
+    setPythonCode(PYTHON_PRESETS[name]);
+    clearPythonDiagnostic();
+
+    const select = document.getElementById('python-preset-select');
+    if (select) select.value = name;
 }
 
 export function initPythonUI() {
@@ -321,7 +348,11 @@ export function initPythonUI() {
     setDefaultConsoleMessage();
     updateStatusText();
     setRunButtonState();
-    loadPythonPreset('square');
+    loadPythonPreset('playground');
+    initMissionUI(setPythonMission);
+
+    document.getElementById('btn-clear-python-console')
+        ?.addEventListener('click', clearPythonConsole);
 }
 
 export async function startPythonAutopilot() {
@@ -336,17 +367,37 @@ export async function startPythonAutopilot() {
         return;
     }
 
-    const editor = document.getElementById('python-code-editor');
-    const code = editor?.value?.trim();
-    if (!code) {
-        appendConsole(t('python.consoleEmpty'), { error: true });
+    const generation = ++startGeneration;
+    starting = true;
+    setRunButtonState();
+    clearConsole();
+    appendConsole(t('python.consoleStarting'));
+
+    try {
+        await ensurePythonLab();
+    } catch (error) {
+        appendConsole(error?.message || String(error), { error: true });
+        showToast('toast.pythonEditorError', 'warning');
+        starting = false;
+        setRunButtonState();
         return;
     }
 
-    const generation = ++startGeneration;
-    starting = true;
-    clearConsole();
-    appendConsole(t('python.consoleStarting'));
+    const code = getPythonCode().trim();
+    if (!code) {
+        appendConsole(t('python.consoleEmpty'), { error: true });
+        starting = false;
+        setRunButtonState();
+        return;
+    }
+
+    if (generation !== startGeneration || controlState.mode !== 'python') {
+        starting = false;
+        setRunButtonState();
+        return;
+    }
+
+    clearPythonDiagnostic();
 
     try {
         await ensureRuntime();
@@ -354,11 +405,13 @@ export async function startPythonAutopilot() {
         appendConsole(error?.message || String(error), { error: true });
         showToast('toast.pythonLoadFailed', 'warning');
         starting = false;
+        setRunButtonState();
         return;
     }
 
     if (!worker || generation !== startGeneration || controlState.mode !== 'python') {
         starting = false;
+        setRunButtonState();
         return;
     }
 
@@ -367,6 +420,7 @@ export async function startPythonAutopilot() {
     refreshFlightStatus();
     worker.postMessage({ type: 'run', code, baseURL: new URL('pyodide/', document.baseURI).href });
     starting = false;
+    setRunButtonState();
 }
 
 export function stopPythonAutopilot() {
@@ -430,6 +484,8 @@ export function stopPythonAutopilot() {
 
 export function refreshPythonUI() {
     updateStatusText();
+    refreshPythonLab();
+    refreshMissionUI();
     if (consoleShowsDefaultMessage) {
         setDefaultConsoleMessage();
     }
@@ -440,4 +496,5 @@ export function refreshPythonUI() {
 // this function only advances the active Tello command in the main thread.
 export function runPythonStep(dt) {
     updateTelloCommand(dt);
+    updateMission();
 }

@@ -74,6 +74,7 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     const groundSize = groundConfig.size ?? 400;
     const groundDivisions = groundConfig.divisions ?? 80;
     const palette = { ...DEFAULT_PALETTE, ...(def.palette || {}) };
+    const spawn = { ...DEFAULT_SPAWN, ...(def.spawn || {}) };
 
     const root = new THREE.Group();
     root.name = `level:${def.id}`;
@@ -99,6 +100,42 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     );
     gridHelper.position.y = 0.05;
     root.add(gridHelper);
+
+    // Optional landing pads for mission levels.
+    function addLandingPad(padDef) {
+        const padRadius = padDef.radius ?? 3;
+        const padColor = padDef.color ?? palette.ring;
+        const padMaterial = new THREE.MeshStandardMaterial({
+            color: padColor,
+            emissive: padColor,
+            emissiveIntensity: padDef.emissiveIntensity ?? 0.18,
+            roughness: 0.55,
+            metalness: 0.2,
+            transparent: true,
+            opacity: padDef.opacity ?? 0.6,
+            side: THREE.DoubleSide,
+        });
+
+        const padX = padDef.x ?? spawn.x;
+        const padZ = padDef.z ?? spawn.z;
+
+        const pad = new THREE.Mesh(new THREE.CircleGeometry(padRadius, 48), padMaterial);
+        pad.rotation.x = -Math.PI / 2;
+        pad.position.set(padX, 0.07, padZ);
+        pad.receiveShadow = true;
+        root.add(pad);
+
+        const padRing = new THREE.Mesh(
+            new THREE.TorusGeometry(padRadius, 0.14, 8, 64),
+            padMaterial
+        );
+        padRing.rotation.x = -Math.PI / 2;
+        padRing.position.set(padX, 0.09, padZ);
+        padRing.receiveShadow = true;
+        root.add(padRing);
+    }
+
+    [def.landingPad, def.missionPad].filter(Boolean).forEach(addLandingPad);
 
     // Pillars / towers
     const getObstacleMaterial = makeObstacleMaterials(palette);
@@ -197,7 +234,8 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         rings,
         gates,
         bounds: { ...DEFAULT_BOUNDS, ...(def.bounds || {}) },
-        spawn: { ...DEFAULT_SPAWN, ...(def.spawn || {}) },
+        spawn,
+        landingPad: def.landingPad || null,
     };
 }
 

@@ -1,4 +1,21 @@
 export const PYTHON_PRESETS = {
+    playground: `from djitellopy import Tello
+
+# Mission: pass through all three rings and land back on the pad.
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+# TODO: fly through the three rings and land on the green pad.
+# Hint: climb to the ring height before moving forward.
+# tello.move_up(300)
+# tello.move_forward(400)
+# After the third ring:
+# tello.move_forward(300)
+
+tello.land()
+tello.end()`,
     square: `from djitellopy import Tello
 
 # Fly a square and land. Distances are in centimetres.

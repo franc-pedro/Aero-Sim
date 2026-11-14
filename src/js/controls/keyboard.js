@@ -3,8 +3,9 @@ import { droneState, gamepadState, keys } from '../core/state.js';
 // --- Keyboard Input Handling ---
 export function initKeyboard({ onReset }) {
     window.addEventListener('keydown', (e) => {
-        // Allow typing normally inside the Python code editor
-        if (document.activeElement && document.activeElement.id === 'python-code-editor') return;
+        // Allow typing normally inside the Python code editor.
+        if (document.activeElement && typeof document.activeElement.closest === 'function'
+            && document.activeElement.closest('.cm-editor')) return;
 
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
             e.preventDefault();

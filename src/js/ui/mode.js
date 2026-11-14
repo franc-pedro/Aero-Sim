@@ -8,15 +8,17 @@ export function setControlMode(mode) {
     const pythonBtn = document.getElementById('mode-btn-python');
     const idePanel = document.getElementById('python-ide-panel');
 
+    document.body.classList.toggle('python-lab-open', mode === 'python');
+
     if (mode === 'python') {
         pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-white shadow flex items-center gap-1.5';
         manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
-        idePanel.classList.remove('hidden');
+        idePanel?.classList.remove('hidden');
     } else {
         stopPythonAutopilot();
         manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow flex items-center gap-1.5';
         pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
-        idePanel.classList.add('hidden');
+        idePanel?.classList.add('hidden');
     }
 
     refreshFlightStatus();

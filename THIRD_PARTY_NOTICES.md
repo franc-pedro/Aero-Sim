@@ -29,6 +29,14 @@ Este projeto inclui bibliotecas de terceiros distribuídas localmente no build.
 - Código-fonte: https://github.com/pyodide/pyodide
 - Inclui CPython e componentes do Emscripten; ver as licenças da distribuição.
 
+## CodeMirror 6 e Lezer
+
+- Licença: MIT
+- Website: https://codemirror.net/
+- Código-fonte: https://github.com/codemirror/dev
+- Pacotes usados: `codemirror`, `@codemirror/lang-python`, `@codemirror/lint`, `@codemirror/state`, `@codemirror/view`, `@codemirror/commands`, `@codemirror/autocomplete` e `@codemirror/theme-one-dark`.
+- O Lezer é usado pelo parser Python do CodeMirror.
+
 ## Compatibilidade com a API da djitellopy
 
 - Licença: MIT

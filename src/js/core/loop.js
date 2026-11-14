@@ -3,6 +3,7 @@ import { showToast } from './toast.js';
 import { updateHUD } from '../ui/hud.js';
 import { notifyCrash, refreshFlightStatus } from '../ui/flight-status.js';
 import { addCameraShake, updateCamera } from '../simulation/camera.js';
+import { updateMission } from '../python/mission.js';
 import {
     capturePreviousState,
     sampleInput,
@@ -120,6 +121,7 @@ export function startLoop({ scene, camera, renderer, world }) {
             if (droneState.flight.status === 'crashed') {
                 addCameraShake(Math.min(0.5, 0.08 + droneState.flight.impactSpeed * 0.02));
                 notifyCrash(droneState.flight.cause, droneState.flight.impactSpeed);
+                updateMission();
             } else {
                 refreshFlightStatus();
             }
