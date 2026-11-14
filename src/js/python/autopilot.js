@@ -1,5 +1,6 @@
 import { controlState, droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
+import { refreshFlightStatus } from '../ui/flight-status.js';
 import { PYTHON_PRESETS } from './presets.js';
 
 const PYTHON_RUNTIME_MESSAGE = 'Python autopilot is disabled in this phase. Manual flight is available.';
@@ -50,14 +51,18 @@ export function startPythonAutopilot() {
 
 export function stopPythonAutopilot() {
     controlState.pythonRunning = false;
-    droneState.throttle = 50;
-    droneState.pitch = 0;
-    droneState.roll = 0;
-    droneState.yaw = 0;
+
+    // A crashed drone keeps its dead controls; do not revive the motors by
+    // simply switching control mode.
+    if (droneState.flight.status === 'flying') {
+        droneState.throttle = 50;
+        droneState.pitch = 0;
+        droneState.roll = 0;
+        droneState.yaw = 0;
+    }
 
     const stopBtn = document.getElementById('btn-stop-python');
     const consoleEl = document.getElementById('python-console');
-    const flightModeBadge = document.getElementById('flight-mode');
 
     setRunButtonState();
     if (stopBtn) {
@@ -68,9 +73,8 @@ export function stopPythonAutopilot() {
         consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
         consoleEl.innerText = PYTHON_RUNTIME_MESSAGE;
     }
-    if (flightModeBadge && controlState.mode === 'python') {
-        flightModeBadge.innerText = 'PYTHON STANDBY';
-    }
+
+    refreshFlightStatus();
 }
 
 // Pyodide is intentionally not wired in this phase. Keeping the hold behavior

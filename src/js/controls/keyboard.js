@@ -16,6 +16,13 @@ export function initKeyboard({ onReset }) {
     window.addEventListener('keyup', (e) => {
         keys[e.code] = false;
     });
+
+    // Avoid stuck keys if focus is lost while a key is held down.
+    window.addEventListener('blur', () => {
+        for (const code of Object.keys(keys)) {
+            keys[code] = false;
+        }
+    });
 }
 
 export function handleKeyboard() {

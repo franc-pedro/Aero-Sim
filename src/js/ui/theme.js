@@ -34,10 +34,27 @@ export function applyTheme(themeName, world) {
     if (world.groundMesh) {
         world.groundMesh.material.color.setHex(cfg.groundColor);
     }
+    const groundConfig = world.level?.def?.ground || {};
+    const groundSize = groundConfig.size ?? 400;
+    const groundDivisions = groundConfig.divisions ?? 80;
+    const gridParent = world.level?.root || world.scene;
+
     if (world.gridHelper) {
-        world.scene.remove(world.gridHelper);
-        world.gridHelper = new THREE.GridHelper(400, 80, cfg.gridMain, cfg.gridSub);
-        world.gridHelper.position.y = 0.05;
-        world.scene.add(world.gridHelper);
+        if (world.gridHelper.parent) {
+            world.gridHelper.parent.remove(world.gridHelper);
+        }
+        world.gridHelper.geometry.dispose();
+        world.gridHelper.material.dispose();
     }
+
+    const gridHelper = new THREE.GridHelper(
+        groundSize,
+        groundDivisions,
+        cfg.gridMain,
+        cfg.gridSub
+    );
+    gridHelper.position.y = 0.05;
+    if (gridParent) gridParent.add(gridHelper);
+    world.gridHelper = gridHelper;
+    if (world.level) world.level.gridHelper = gridHelper;
 }

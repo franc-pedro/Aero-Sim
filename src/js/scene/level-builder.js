@@ -1,0 +1,225 @@
+import * as THREE from 'three';
+import { SCENE_THEMES } from '../config/themes.js';
+
+const DEFAULT_RING_RADIUS = 4;
+const DEFAULT_RING_TUBE = 0.4;
+const DEFAULT_BOUNDS = { halfSize: 180, ceiling: 150 };
+const DEFAULT_SPAWN = { x: 0, y: 1.5, z: 0, yaw: 0 };
+
+const DEFAULT_PALETTE = {
+    pillar: 0x3b82f6,
+    hazard: 0xf43f5e,
+    tower: 0x334155,
+    ring: 0x06b6d4,
+    decor: 0x475569,
+};
+
+function validateLevel(def) {
+    if (!import.meta.env || !import.meta.env.DEV) return;
+
+    const bounds = { ...DEFAULT_BOUNDS, ...(def.bounds || {}) };
+    const spawn = { ...DEFAULT_SPAWN, ...(def.spawn || {}) };
+
+    if (Math.abs(spawn.x) > bounds.halfSize || Math.abs(spawn.z) > bounds.halfSize) {
+        console.warn(`[level:${def.id}] spawn is outside the level bounds`, spawn);
+    }
+
+    (def.rings || []).forEach((ring, index) => {
+        const radius = ring.radius ?? DEFAULT_RING_RADIUS;
+        if (Math.abs(ring.x) > bounds.halfSize || Math.abs(ring.z) > bounds.halfSize) {
+            console.warn(`[level:${def.id}] ring ${index} is outside the level bounds`, ring);
+        }
+        if (ring.y + radius + 2 > bounds.ceiling) {
+            console.warn(`[level:${def.id}] ring ${index} is too close to the ceiling`, ring);
+        }
+    });
+
+    (def.obstacles || []).forEach((obstacle, index) => {
+        const spawnDistance = Math.hypot(obstacle.x - spawn.x, obstacle.z - spawn.z);
+        if (spawnDistance < obstacle.radius + 4) {
+            console.warn(`[level:${def.id}] obstacle ${index} is too close to spawn`, obstacle);
+        }
+
+        (def.rings || []).forEach((ring, ringIndex) => {
+            const ringRadius = ring.radius ?? DEFAULT_RING_RADIUS;
+            const distance = Math.hypot(obstacle.x - ring.x, obstacle.z - ring.z);
+            if (distance < ringRadius + obstacle.radius + 2) {
+                console.warn(`[level:${def.id}] obstacle ${index} intersects ring ${ringIndex}`, obstacle);
+            }
+        });
+    });
+}
+
+function makeObstacleMaterials(palette) {
+    const cache = new Map();
+
+    return function getObstacleMaterial(kind) {
+        const key = kind || 'pillar';
+        if (!cache.has(key)) {
+            cache.set(key, new THREE.MeshStandardMaterial({
+                color: palette[key] ?? palette.pillar,
+                roughness: 0.4,
+                metalness: 0.5,
+            }));
+        }
+        return cache.get(key);
+    };
+}
+
+export function buildLevel(def, scene, themeName = 'daylight') {
+    validateLevel(def);
+
+    const theme = SCENE_THEMES[themeName] || SCENE_THEMES.daylight;
+    const groundConfig = def.ground || {};
+    const groundSize = groundConfig.size ?? 400;
+    const groundDivisions = groundConfig.divisions ?? 80;
+    const palette = { ...DEFAULT_PALETTE, ...(def.palette || {}) };
+
+    const root = new THREE.Group();
+    root.name = `level:${def.id}`;
+    scene.add(root);
+
+    // Ground and grid
+    const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
+    const groundMat = new THREE.MeshStandardMaterial({
+        color: theme.groundColor,
+        roughness: 0.75,
+        metalness: 0.1,
+    });
+    const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.receiveShadow = true;
+    root.add(groundMesh);
+
+    const gridHelper = new THREE.GridHelper(
+        groundSize,
+        groundDivisions,
+        theme.gridMain,
+        theme.gridSub
+    );
+    gridHelper.position.y = 0.05;
+    root.add(gridHelper);
+
+    // Pillars / towers
+    const getObstacleMaterial = makeObstacleMaterials(palette);
+    const obstacles = [];
+
+    (def.obstacles || []).forEach((obstacle) => {
+        const radius = obstacle.radius ?? 2;
+        const height = obstacle.height ?? 10;
+        const geometry = new THREE.CylinderGeometry(radius, radius, height, 16);
+        const mesh = new THREE.Mesh(geometry, getObstacleMaterial(obstacle.kind));
+
+        mesh.position.set(obstacle.x, height / 2, obstacle.z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        root.add(mesh);
+
+        obstacles.push({
+            mesh,
+            radius,
+            height,
+            pos: new THREE.Vector3(obstacle.x, height / 2, obstacle.z),
+        });
+    });
+
+    // Rings and gates
+    const ringMat = new THREE.MeshStandardMaterial({
+        color: palette.ring,
+        emissive: palette.ring,
+        emissiveIntensity: 0.4,
+        roughness: 0.35,
+        metalness: 0.3,
+    });
+    const rings = [];
+    const gates = [];
+
+    (def.rings || []).forEach((ringDef, index) => {
+        const radius = ringDef.radius ?? DEFAULT_RING_RADIUS;
+        const tube = ringDef.tube ?? DEFAULT_RING_TUBE;
+        const geometry = new THREE.TorusGeometry(radius, tube, 16, 50);
+        const mesh = new THREE.Mesh(geometry, ringMat);
+
+        mesh.position.set(ringDef.x, ringDef.y, ringDef.z);
+        mesh.rotation.set(ringDef.pitch ?? 0, ringDef.yaw ?? 0, ringDef.roll ?? 0);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        root.add(mesh);
+
+        const collider = {
+            mesh,
+            radius,
+            tube,
+            position: mesh.position.clone(),
+            quaternion: mesh.quaternion.clone(),
+            isGate: ringDef.gate !== false,
+            order: index,
+            passed: false,
+        };
+        rings.push(collider);
+        if (collider.isGate) gates.push(collider);
+    });
+
+    // Optional decorative structures (no collider). Use them outside the
+    // playable bounds for landmarks, or extend collision support later.
+    (def.decor || []).forEach((decor) => {
+        let geometry;
+        if (decor.type === 'cylinder') {
+            const radius = decor.radius ?? 2;
+            geometry = new THREE.CylinderGeometry(radius, radius, decor.height ?? 10, 16);
+        } else {
+            geometry = new THREE.BoxGeometry(
+                decor.width ?? 10,
+                decor.height ?? 10,
+                decor.depth ?? 10
+            );
+        }
+
+        const material = new THREE.MeshStandardMaterial({
+            color: decor.color ?? palette.decor,
+            roughness: decor.roughness ?? 0.8,
+            metalness: decor.metalness ?? 0.2,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(decor.x ?? 0, decor.y ?? 0, decor.z ?? 0);
+        mesh.rotation.y = decor.yaw ?? 0;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        root.add(mesh);
+    });
+
+    return {
+        def,
+        root,
+        groundMesh,
+        gridHelper,
+        obstacles,
+        rings,
+        gates,
+        bounds: { ...DEFAULT_BOUNDS, ...(def.bounds || {}) },
+        spawn: { ...DEFAULT_SPAWN, ...(def.spawn || {}) },
+    };
+}
+
+export function disposeLevel(level, scene) {
+    if (!level || !level.root) return;
+
+    scene.remove(level.root);
+
+    const geometries = new Set();
+    const materials = new Set();
+
+    level.root.traverse((object) => {
+        if (object.geometry) geometries.add(object.geometry);
+        if (object.material) {
+            if (Array.isArray(object.material)) {
+                object.material.forEach((material) => materials.add(material));
+            } else {
+                materials.add(object.material);
+            }
+        }
+    });
+
+    geometries.forEach((geometry) => geometry.dispose());
+    materials.forEach((material) => material.dispose());
+}

@@ -2,6 +2,13 @@ import { droneState, gamepadState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
 import { updateAxesBars } from '../ui/hud.js';
 
+const DEADZONE = 0.08;
+
+function applyDeadzone(value) {
+    if (value === undefined || value === null || Number.isNaN(value)) return 0;
+    return Math.abs(value) < DEADZONE ? 0 : value;
+}
+
 // --- Gamepad Status UI Updater ---
 export function updateGamepadUI(connected, name = '') {
     const dot = document.getElementById('gamepad-dot');
@@ -77,21 +84,12 @@ export function pollGamepad() {
 
     if (!gp) return;
 
-    const deadzone = 0.08;
-    const applyDeadzone = (val) => {
-        if (val === undefined || val === null || Number.isNaN(val)) return 0;
-        return Math.abs(val) < deadzone ? 0 : val;
-    };
-
     const axes = gp.axes || [];
 
     // Capture initial resting baseline for secondary axes (triggers/sliders often rest at -1 or +1)
     if (gamepadState.baselineAxes.length !== axes.length) {
         gamepadState.baselineAxes = Array.from(axes).map((v) => (Math.abs(v) > 0.85 ? Math.sign(v) : 0));
     }
-
-    // Update visual 8-channel raw axes monitor
-    updateAxesBars(axes);
 
     // Standard Mode 2 Left Stick & Roll:
     // axes[0] = Yaw, axes[1] = Throttle, axes[2] = Roll
@@ -117,7 +115,7 @@ export function pollGamepad() {
             const delta = axes[idx] - base;
             // Ignore axes stuck at an unmoved rail (-1 or +1 when baseline was 0) unless actively moving
             const mag = Math.abs(delta);
-            if (mag > deadzone && mag <= 1.05 && mag > bestDeflection) {
+            if (mag > DEADZONE && mag <= 1.05 && mag > bestDeflection) {
                 bestDeflection = mag;
                 bestIdx = idx;
             }
@@ -128,13 +126,8 @@ export function pollGamepad() {
         rawPitch = applyDeadzone(axes[bestIdx] - base);
     }
 
-    const rawEl = document.getElementById('raw-axes-readout');
-    if (rawEl) {
-        const valStr = (axes[gamepadState.detectedPitchAxisIndex] !== undefined)
-            ? axes[gamepadState.detectedPitchAxisIndex].toFixed(2)
-            : 'N/A';
-        rawEl.innerText = `Pitch Ch: A${gamepadState.detectedPitchAxisIndex} (${valStr})`;
-    }
+    // Update visual 8-channel raw axes monitor (throttled inside the HUD module)
+    updateAxesBars(axes);
 
     // Pushing stick UP gives negative Y on standard gamepads -> invert for positive Throttle & forward Pitch
     const axisThrottle = -rawThrottle;
