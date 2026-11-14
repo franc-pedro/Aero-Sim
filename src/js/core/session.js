@@ -1,14 +1,24 @@
 import { DEFAULT_LEVEL_ID, getLevel, getLevelText } from '../levels/index.js';
 import { stopPythonAutopilot } from '../python/autopilot.js';
+import { resetTelloCommandState } from '../python/commands.js';
 import { buildLevel, disposeLevel } from '../scene/level-builder.js';
+import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
 import { setLevelInfo } from '../ui/levels.js';
 import { applyTheme } from '../ui/theme.js';
-import { droneState, resetDrone } from './state.js';
+import { controlState, droneState, resetDrone } from './state.js';
 import { showToast } from './toast.js';
 
 export function createSession({ scene, world }) {
     let current = null;
+
+    function getSpawnForMode() {
+        if (!current) return null;
+        if (controlState.mode === 'python') {
+            return { ...current.spawn, y: GROUND_HEIGHT };
+        }
+        return current.spawn;
+    }
 
     function syncWorld() {
         world.level = current;
@@ -45,6 +55,7 @@ export function createSession({ scene, world }) {
 
         // A level change always starts from a controlled state.
         stopPythonAutopilot();
+        resetTelloCommandState();
 
         const themeName = def.defaultTheme || 'daylight';
         current = buildLevel(def, scene, themeName);
@@ -52,7 +63,7 @@ export function createSession({ scene, world }) {
         resetObjectives();
 
         applyTheme(themeName, world);
-        resetDrone(current.spawn, { silent: true });
+        resetDrone(getSpawnForMode(), { silent: true });
 
         refreshFlightStatus();
         setLevelInfo(def);
@@ -64,17 +75,38 @@ export function createSession({ scene, world }) {
         return current;
     }
 
-    function reset() {
+    function reset({ silent = false } = {}) {
         if (!current) return;
 
+        if (controlState.mode === 'python') {
+            stopPythonAutopilot();
+        }
+        resetTelloCommandState();
         resetObjectives();
-        resetDrone(current.spawn, { silent: false });
+        resetDrone(getSpawnForMode(), { silent });
+        refreshFlightStatus();
+    }
+
+    // Python scripts start on the launch pad so takeoff()/land() have a clear
+    // physical meaning. The drone remains in normal "flying" physics, just at
+    // ground level until takeoff is requested.
+    function preparePython() {
+        if (!current) return;
+
+        stopPythonAutopilot();
+        resetTelloCommandState();
+        resetObjectives();
+        resetDrone(
+            { ...current.spawn, y: GROUND_HEIGHT },
+            { silent: true }
+        );
         refreshFlightStatus();
     }
 
     return {
         loadLevel,
         reset,
+        preparePython,
         getCurrent: () => current,
     };
 }

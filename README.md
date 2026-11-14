@@ -1,6 +1,6 @@
 # AERO-SIM
 
-**Versão atual: 1.2.0**
+**Versão atual: 1.3.0**
 
 Simulador de voo de um quadcopter, agora servido como aplicação Vite com HTML, CSS e JavaScript separados.
 
@@ -32,7 +32,9 @@ src/js/levels/          registo, RNG e definições dos níveis
 src/js/scene/           level builder e modelo do quadcopter
 src/js/controls/        teclado e gamepad
 src/js/ui/              tema, HUD, níveis, idioma e modos
-src/js/python/          presets Python e estado do autopiloto
+src/js/python/          runtime Pyodide, worker, comandos, presets e autopiloto
+src/py/djitellopy.py    shim Python compatível com a API da djitellopy
+scripts/copy-pyodide.mjs copia os assets do Pyodide para public/pyodide/
 src/js/simulation/      física de voo, colisões, portais e câmara
 public/favicon.svg      favicon local
 ```
@@ -44,18 +46,52 @@ Não há CDNs em runtime. As dependências são instaladas via npm e incluídas 
 - **Tailwind CSS 3.4.19** — CSS compilado no build, sem o Play CDN.
 - **Three.js 0.128.0** — bundle local.
 - **FontAwesome Free 6.4.0** — CSS e webfonts locais.
+- **Pyodide 314.0.8** — CPython 3.14 em WebAssembly. Os assets são copiados de `node_modules/pyodide/` para `public/pyodide/` por `scripts/copy-pyodide.mjs`; `predev` e `prebuild` executam essa cópia automaticamente. `public/pyodide/` não é versionado.
 
-O CSS é importado pelo entry `src/js/main.js` e o Vite gera os ficheiros finais em `dist/assets/`.
+O CSS é importado pelo entry `src/js/main.js` e o Vite gera os ficheiros finais em `dist/assets/`. O build de produção inclui `dist/pyodide/`.
 
-## Estado atual do autopiloto Python
+## Python Lab (Fase 0)
 
-O Pyodide **não** faz parte desta fase. A interface Python mantém-se visível para preservar o layout e os presets, mas o botão **Run Script** está desativado e o runtime não é descarregado. O modo Manual funciona normalmente.
+O painel **Python Code** já executa Python real no browser, sem backend:
 
-Numa fase seguinte, o Pyodide pode ser instalado como dependência local, copiado para `public/pyodide/` e carregado com `loadPyodide({ indexURL })`; nessa altura o botão de execução pode ser reativado.
+- **Pyodide 314.0.8** (CPython 3.14) corre num **Web Worker**.
+- O código do aluno usa a API pública da **djitellopy** (`from djitellopy import Tello`), implementada por um shim em `src/py/djitellopy.py` que envia comandos ao simulador. A djitellopy real usa sockets UDP, que o browser não permite; o shim mantém o mesmo contrato para o código ser reutilizável num Tello real.
+- O main thread continua responsável pelo Three.js e pela física a 120 Hz. O worker espera pela conclusão de cada comando através de JSPI (`run_sync`), pelo que a UI não bloqueia.
+- As chamadas `time.sleep()` são suportadas e não bloqueiam o worker; o botão **Stop** interrompe scripts suspensos.
+- Cada comando tem timeout e o drone aterra automaticamente se o script terminar a voar.
+
+### Requisitos de browser
+
+JSPI é necessário para manter a API síncrona simples:
+
+- Chrome/Edge 137+
+- Firefox 153+
+- Safari 27+
+
+Em browsers sem suporte, o painel mostra um aviso e o modo Manual continua a funcionar.
+
+### API suportada nesta fase
+
+`connect`, `end`, `takeoff`, `land`, `emergency`, `move_forward/back/left/right/up/down`, `rotate_clockwise/counter_clockwise`, `set_speed`, `send_rc_control`, `get_battery`, `get_height`, `get_distance_tof`, `get_baro`, `get_temperature`, `get_attitude`, `get_yaw/pitch/roll`, `get_velocity_x/y/z`, `get_flight_time` e `time.sleep`.
+
+Ainda não suportado: vídeo (`streamon`, `get_frame_read`), enxames, mission pads, `throw_takeoff`, curvas e a API antiga `control_step(state, dt)`. Os presets `square`, `hello` e `sensors` usam a API djitellopy.
+
+Nesta fase só está disponível a biblioteca padrão do Python; não são descarregados pacotes externos nem usados CDNs. `input()` também ainda não está implementado.
+
+### Como executar
+
+```bash
+npm install
+npm run dev
+```
+
+Abrir a aplicação, escolher **Python Code** e premir **Run Script**. Na primeira execução o Pyodide é carregado localmente; as execuções seguintes reutilizam o runtime. O botão **Reset Pos** repõe o drone no chão e limpa o estado do voo.
 
 ## Deploy
 
 O projeto usa `base: './'` no Vite, pelo que o conteúdo de `dist/` pode ser servido a partir da raiz ou de uma subpasta. Configura o host estático para servir `dist/index.html` como entrada.
+
+O deploy tem de incluir `dist/pyodide/` e servir `.wasm` com o MIME `application/wasm`. JSPI requer um contexto seguro (HTTPS ou `localhost`). Não são necessários headers `COOP`/`COEP` para a arquitetura atual.
 
 ## Simulação e fluidez
 
@@ -128,7 +164,12 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 10. Trocar English ↔ Português (PT): confirmar que header, HUD, níveis, controlos, painel Python, gamepad, toasts e badges mudam sem reload.
 11. Recarregar a página com PT selecionado e confirmar a persistência, `html lang="pt-PT"` e o título do documento traduzido.
 12. Ligar um gamepad e confirmar o estado, os eixos e o invert de pitch.
-13. Abrir **Python Code** e confirmar que o editor/presets estão disponíveis mas a execução está bloqueada nesta fase; o código dos presets mantém-se em inglês.
+13. Abrir **Python Code** e confirmar o estado “Loading Python runtime…” e depois “Python ready”.
+14. Executar o preset **First Flight**: confirmar takeoff, subida, aterragem, consola com `Battery`/`Height` e regresso a “Python ready”.
+15. Testar **Stop** com um script que usa `time.sleep`, confirmar que o drone aterra e que o runtime continua disponível.
+16. Testar um erro de sintaxe e um comando sem `takeoff`: confirmar a mensagem na consola e que o botão Run volta a funcionar.
+17. Premir **Reset Pos** e confirmar que o drone volta ao chão; mudar para **Manual** e confirmar o spawn normal.
+18. Confirmar que os assets do Pyodide são servidos localmente (`dist/pyodide/`) e que não há pedidos a CDNs.
 
 ## Licenças
 

@@ -13,7 +13,7 @@ import { initGamepad, refreshGamepadUI } from './controls/gamepad.js';
 import { initKeyboard } from './controls/keyboard.js';
 import { initI18n, onLocaleChange } from './i18n/index.js';
 import { DEFAULT_LEVEL_ID } from './levels/index.js';
-import { initPythonUI, loadPythonPreset, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
+import { initPythonUI, loadPythonPreset, preloadPythonRuntime, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
 import { createQuadcopter } from './scene/quadcopter.js';
 import { refreshFlightStatus } from './ui/flight-status.js';
 import { initAxesBars, refreshHUD } from './ui/hud.js';
@@ -95,9 +95,15 @@ function init() {
 
     initAxesBars();
     initGamepad();
-    initKeyboard({ onReset: session.reset });
+    initKeyboard({ onReset: () => {
+        session.reset();
+        refreshPythonUI();
+    } });
     initPythonUI();
-    initLevelUI({ onSelect: (id) => session.loadLevel(id) });
+    initLevelUI({ onSelect: (id) => {
+        session.loadLevel(id);
+        refreshPythonUI();
+    } });
 
     session.loadLevel(DEFAULT_LEVEL_ID);
     drone.group.position.copy(droneState.renderPos);
@@ -118,8 +124,17 @@ function init() {
     // 7. Event Listeners
     window.addEventListener('resize', onWindowResize);
 
-    document.getElementById('mode-btn-manual').addEventListener('click', () => setControlMode('manual'));
-    document.getElementById('mode-btn-python').addEventListener('click', () => setControlMode('python'));
+    document.getElementById('mode-btn-manual').addEventListener('click', () => {
+        setControlMode('manual');
+        session.reset({ silent: true });
+        refreshPythonUI();
+    });
+    document.getElementById('mode-btn-python').addEventListener('click', () => {
+        session.preparePython();
+        setControlMode('python');
+        preloadPythonRuntime();
+        refreshPythonUI();
+    });
 
     document.getElementById('theme-btn-daylight').addEventListener('click', () => applyTheme('daylight', world));
     document.getElementById('theme-btn-sunset').addEventListener('click', () => applyTheme('sunset', world));
@@ -128,7 +143,10 @@ function init() {
     document.getElementById('python-preset-select').addEventListener('change', (e) => loadPythonPreset(e.target.value));
     document.getElementById('btn-run-python').addEventListener('click', startPythonAutopilot);
     document.getElementById('btn-stop-python').addEventListener('click', stopPythonAutopilot);
-    document.getElementById('btn-reset-drone').addEventListener('click', session.reset);
+    document.getElementById('btn-reset-drone').addEventListener('click', () => {
+        session.reset();
+        refreshPythonUI();
+    });
 
     // 8. Start Fixed-Step Simulation & Render Loop
     startLoop({ scene, camera, renderer, world });

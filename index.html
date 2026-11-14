@@ -27,7 +27,7 @@
                     <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
                     <p class="text-xs theme-muted-text">
                         <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.2</span> ·
+                        <span>v1.3</span> ·
                         <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
                     </p>
                 </div>
@@ -91,13 +91,13 @@
                     <i class="fa-brands fa-python text-lg theme-accent-text"></i>
                     <div>
                         <h2 data-i18n="python.title" class="text-xs font-bold uppercase tracking-wider">Autonomous Flight Script (Python)</h2>
-                        <p id="pyodide-status" class="text-[10px] theme-muted-text">Pyodide runtime not included in this phase</p>
+                        <p id="pyodide-status" class="text-[10px] theme-muted-text">Python runtime loads on first run</p>
                     </div>
                 </div>
                 <select id="python-preset-select" aria-label="Python preset" data-i18n-aria-label="python.presetLabel" class="sub-card theme-accent-text font-mono text-[11px] font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
                     <option value="square" data-i18n="python.preset.square">Preset: Waypoint Square</option>
-                    <option value="orbit" data-i18n="python.preset.orbit">Preset: Orbit &amp; Altitude Wave</option>
-                    <option value="slalom" data-i18n="python.preset.slalom">Preset: Forward Slalom</option>
+                    <option value="hello" data-i18n="python.preset.hello">Preset: First Flight</option>
+                    <option value="sensors" data-i18n="python.preset.sensors">Preset: Sensors</option>
                 </select>
             </div>
 
@@ -124,7 +124,7 @@
                 </button>
             </div>
 
-            <div id="python-console" class="sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text">Python autopilot is disabled in this phase. Manual flight is available.</div>
+            <div id="python-console" class="sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text">Python loads locally on the first run. Manual flight remains available.</div>
         </aside>
 
         <!-- Bottom HUD: Telemetry & Controls Guide -->

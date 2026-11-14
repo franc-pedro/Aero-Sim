@@ -2,16 +2,309 @@ import { controlState, droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
 import { t } from '../i18n/index.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
+import {
+    abortTelloCommand,
+    executeTelloCommand,
+    isTelloFlightActive,
+    TelloCommandError,
+    updateTelloCommand,
+} from './commands.js';
 import { PYTHON_PRESETS } from './presets.js';
 
+let worker = null;
+let workerReadyPromise = null;
+let workerReadyResolve = null;
+let workerReadyReject = null;
+let workerReadyTimer = null;
+let runtimeVersion = '';
+let runtimeStatus = 'idle';
+let starting = false;
+let startGeneration = 0;
+let autoLanding = false;
+let hardStopTimer = null;
 let consoleShowsDefaultMessage = true;
 
-function setDefaultConsoleMessage(consoleEl) {
+function supportsJspi() {
+    return typeof WebAssembly === 'object'
+        && ('Suspending' in WebAssembly || 'Suspender' in WebAssembly);
+}
+
+function getConsole() {
+    return document.getElementById('python-console');
+}
+
+function setDefaultConsoleMessage() {
+    const consoleEl = getConsole();
     if (!consoleEl) return;
 
     consoleEl.className = 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
-    consoleEl.textContent = t('python.consoleDisabled');
+    consoleEl.textContent = t(controlState.pythonRuntimeAvailable
+        ? 'python.consoleReady'
+        : 'python.consoleUnsupported');
     consoleShowsDefaultMessage = true;
+}
+
+function clearConsole() {
+    const consoleEl = getConsole();
+    if (!consoleEl) return;
+    consoleEl.textContent = '';
+    consoleShowsDefaultMessage = false;
+}
+
+function appendConsole(text, { error = false } = {}) {
+    const consoleEl = getConsole();
+    if (!consoleEl || !text) return;
+
+    if (consoleShowsDefaultMessage) {
+        consoleEl.textContent = '';
+        consoleShowsDefaultMessage = false;
+    }
+
+    consoleEl.className = error
+        ? 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap text-rose-400'
+        : 'sub-card rounded-xl px-3 py-2 font-mono text-[11px] max-h-20 overflow-y-auto whitespace-pre-wrap theme-muted-text';
+
+    consoleEl.textContent += `${text.replace(/\s+$/, '')}\n`;
+    if (consoleEl.textContent.length > 12000) {
+        consoleEl.textContent = consoleEl.textContent.slice(-12000);
+    }
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+function setRuntimeStatus(status) {
+    runtimeStatus = status;
+    updateStatusText();
+    setRunButtonState();
+}
+
+function updateStatusText() {
+    const statusEl = document.getElementById('pyodide-status');
+    if (!statusEl) return;
+
+    const keys = {
+        idle: 'python.runtimeIdle',
+        loading: 'python.runtimeLoading',
+        ready: 'python.runtimeReady',
+        running: 'python.runtimeRunning',
+        stopping: 'python.runtimeStopping',
+        error: 'python.runtimeError',
+        unsupported: 'python.runtimeUnsupported',
+    };
+
+    const key = keys[runtimeStatus] || keys.idle;
+    statusEl.textContent = t(key, { version: runtimeVersion || 'Pyodide' });
+}
+
+function setRunButtonState() {
+    const runBtn = document.getElementById('btn-run-python');
+    const stopBtn = document.getElementById('btn-stop-python');
+    const busy = runtimeStatus === 'loading' || runtimeStatus === 'running' || runtimeStatus === 'stopping';
+    const canRun = controlState.pythonRuntimeAvailable
+        && !busy
+        && !autoLanding
+        && droneState.flight.status !== 'crashed';
+    const canStop = controlState.pythonRunning || runtimeStatus === 'running';
+
+    if (runBtn) {
+        runBtn.disabled = !canRun;
+        runBtn.classList.toggle('opacity-50', !canRun);
+        runBtn.classList.toggle('cursor-not-allowed', !canRun);
+    }
+
+    if (stopBtn) {
+        stopBtn.disabled = !canStop;
+        stopBtn.classList.toggle('opacity-50', !canStop);
+        stopBtn.classList.toggle('cursor-not-allowed', !canStop);
+    }
+}
+
+function cleanupWorker() {
+    if (workerReadyTimer) {
+        clearTimeout(workerReadyTimer);
+        workerReadyTimer = null;
+    }
+    if (hardStopTimer) {
+        clearTimeout(hardStopTimer);
+        hardStopTimer = null;
+    }
+
+    if (worker) {
+        worker.terminate();
+        worker = null;
+    }
+
+    controlState.pythonRuntimeReady = false;
+    controlState.pythonRunning = false;
+    autoLanding = false;
+    workerReadyPromise = null;
+    workerReadyResolve = null;
+    workerReadyReject = null;
+}
+
+function failRuntime(message, { toast = false } = {}) {
+    if (workerReadyReject) {
+        const reject = workerReadyReject;
+        workerReadyReject = null;
+        reject(new Error(message));
+    }
+    cleanupWorker();
+    setRuntimeStatus('error');
+    appendConsole(message, { error: true });
+    if (toast) showToast('toast.pythonRuntimeError', 'warning');
+}
+
+function autoLandIfNeeded() {
+    if (
+        controlState.mode !== 'python'
+        || droneState.flight.status !== 'flying'
+        || !isTelloFlightActive()
+    ) {
+        return false;
+    }
+
+    autoLanding = true;
+    setRuntimeStatus('stopping');
+    appendConsole(t('python.consoleAutoLand'));
+    executeTelloCommand('land')
+        .catch((error) => {
+            if (error?.code !== 'aborted') {
+                appendConsole(error?.message || String(error), { error: true });
+            }
+        })
+        .finally(() => {
+            autoLanding = false;
+            setRuntimeStatus(controlState.pythonRuntimeReady ? 'ready' : 'idle');
+            refreshFlightStatus();
+        });
+    return true;
+}
+
+function handleWorkerMessage(message) {
+    if (!worker) return;
+
+    switch (message.type) {
+        case 'status':
+            if (message.status === 'loading' && runtimeStatus !== 'loading') {
+                setRuntimeStatus('loading');
+            }
+            break;
+
+        case 'ready':
+            runtimeVersion = message.version || '';
+            controlState.pythonRuntimeReady = true;
+            if (workerReadyTimer) {
+                clearTimeout(workerReadyTimer);
+                workerReadyTimer = null;
+            }
+            if (workerReadyResolve) {
+                const resolve = workerReadyResolve;
+                workerReadyResolve = null;
+                workerReadyReject = null;
+                resolve();
+            }
+            setRuntimeStatus('ready');
+            break;
+
+        case 'stdout':
+            appendConsole(message.text);
+            break;
+
+        case 'stderr':
+            appendConsole(message.text, { error: true });
+            break;
+
+        case 'telloCommand': {
+            const sourceWorker = worker;
+            if (!sourceWorker) return;
+            executeTelloCommand(message.method, message.args || [])
+                .then((value) => {
+                    if (worker === sourceWorker) {
+                        worker.postMessage({
+                            type: 'telloResult',
+                            id: message.id,
+                            ok: true,
+                            value,
+                        });
+                    }
+                })
+                .catch((error) => {
+                    if (worker !== sourceWorker) return;
+                    worker.postMessage({
+                        type: 'telloResult',
+                        id: message.id,
+                        ok: false,
+                        error: {
+                            type: error?.code || 'tello_error',
+                            message: error?.message || String(error),
+                        },
+                    });
+                });
+            break;
+        }
+
+        case 'finished':
+            if (hardStopTimer) {
+                clearTimeout(hardStopTimer);
+                hardStopTimer = null;
+            }
+            controlState.pythonRunning = false;
+            refreshFlightStatus();
+            if (message.status === 'stopped') {
+                appendConsole(t('python.consoleStopped'));
+            }
+            if (!autoLandIfNeeded()) {
+                setRuntimeStatus('ready');
+            }
+            break;
+
+        case 'fatal':
+            failRuntime(message.message || 'Python runtime error.', { toast: true });
+            break;
+
+        default:
+            break;
+    }
+}
+
+function ensureRuntime() {
+    if (controlState.pythonRuntimeReady && worker) {
+        return Promise.resolve();
+    }
+    if (workerReadyPromise) {
+        return workerReadyPromise;
+    }
+    if (!controlState.pythonRuntimeAvailable) {
+        return Promise.reject(new Error(t('python.runtimeUnsupported')));
+    }
+
+    setRuntimeStatus('loading');
+
+    worker = new Worker(new URL('./pyodide-worker.js', import.meta.url), { type: 'module' });
+    worker.onmessage = (event) => handleWorkerMessage(event.data || {});
+    worker.onerror = (event) => {
+        failRuntime(event.message || 'Failed to start the Python worker.', { toast: true });
+    };
+
+    workerReadyPromise = new Promise((resolve, reject) => {
+        workerReadyResolve = resolve;
+        workerReadyReject = reject;
+    });
+
+    workerReadyTimer = setTimeout(() => {
+        failRuntime(t('python.runtimeTimeout'), { toast: true });
+    }, 120000);
+
+    const baseURL = new URL('pyodide/', document.baseURI).href;
+    worker.postMessage({ type: 'init', baseURL });
+
+    return workerReadyPromise;
+}
+
+export function preloadPythonRuntime() {
+    if (!controlState.pythonRuntimeAvailable || worker) return;
+    ensureRuntime().catch(() => {
+        // The visible status and console report the failure when the user runs.
+    });
 }
 
 export function loadPythonPreset(name) {
@@ -21,54 +314,109 @@ export function loadPythonPreset(name) {
     }
 }
 
-function setRunButtonState() {
-    const runBtn = document.getElementById('btn-run-python');
-    if (!runBtn) return;
-
-    runBtn.disabled = !controlState.pythonRuntimeAvailable;
-    if (runBtn.disabled) {
-        runBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-        runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-}
-
 export function initPythonUI() {
-    const statusEl = document.getElementById('pyodide-status');
-    const consoleEl = document.getElementById('python-console');
-    const stopBtn = document.getElementById('btn-stop-python');
+    controlState.pythonRuntimeAvailable = supportsJspi();
+    runtimeStatus = controlState.pythonRuntimeAvailable ? 'idle' : 'unsupported';
 
-    if (statusEl) statusEl.textContent = t('python.runtimeStatus');
-    setDefaultConsoleMessage(consoleEl);
-    if (stopBtn) {
-        stopBtn.disabled = true;
-        stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    }
+    setDefaultConsoleMessage();
+    updateStatusText();
     setRunButtonState();
     loadPythonPreset('square');
 }
 
-export function startPythonAutopilot() {
+export async function startPythonAutopilot() {
     if (!controlState.pythonRuntimeAvailable) {
         showToast('toast.pythonUnavailable', 'warning');
         return;
     }
-}
-
-export function refreshPythonUI() {
-    const statusEl = document.getElementById('pyodide-status');
-    if (statusEl) statusEl.textContent = t('python.runtimeStatus');
-
-    if (consoleShowsDefaultMessage) {
-        setDefaultConsoleMessage(document.getElementById('python-console'));
+    if (controlState.pythonRunning || starting) return;
+    if (autoLanding) return;
+    if (droneState.flight.status === 'crashed') {
+        appendConsole(t('python.consoleCrashed'), { error: true });
+        return;
     }
+
+    const editor = document.getElementById('python-code-editor');
+    const code = editor?.value?.trim();
+    if (!code) {
+        appendConsole(t('python.consoleEmpty'), { error: true });
+        return;
+    }
+
+    const generation = ++startGeneration;
+    starting = true;
+    clearConsole();
+    appendConsole(t('python.consoleStarting'));
+
+    try {
+        await ensureRuntime();
+    } catch (error) {
+        appendConsole(error?.message || String(error), { error: true });
+        showToast('toast.pythonLoadFailed', 'warning');
+        starting = false;
+        return;
+    }
+
+    if (!worker || generation !== startGeneration || controlState.mode !== 'python') {
+        starting = false;
+        return;
+    }
+
+    controlState.pythonRunning = true;
+    setRuntimeStatus('running');
+    refreshFlightStatus();
+    worker.postMessage({ type: 'run', code, baseURL: new URL('pyodide/', document.baseURI).href });
+    starting = false;
 }
 
 export function stopPythonAutopilot() {
-    controlState.pythonRunning = false;
+    startGeneration += 1;
+    starting = false;
 
-    // A crashed drone keeps its dead controls; do not revive the motors by
-    // simply switching control mode.
+    if (autoLanding) {
+        autoLanding = false;
+        abortTelloCommand(new TelloCommandError('Stopped by user.', 'aborted'));
+        setRuntimeStatus(controlState.pythonRuntimeAvailable
+            ? (controlState.pythonRuntimeReady ? 'ready' : 'idle')
+            : 'unsupported');
+        if (droneState.flight.status === 'flying') {
+            droneState.throttle = 50;
+            droneState.pitch = 0;
+            droneState.roll = 0;
+            droneState.yaw = 0;
+        }
+        refreshFlightStatus();
+        setRunButtonState();
+        return;
+    }
+
+    const wasActive = controlState.pythonRunning || runtimeStatus === 'running' || runtimeStatus === 'stopping';
+
+    abortTelloCommand(new TelloCommandError('Stopped by user.', 'aborted'));
+
+    if (wasActive && worker) {
+        worker.postMessage({ type: 'stop' });
+        controlState.pythonRunning = false;
+        setRuntimeStatus('stopping');
+
+        const sourceWorker = worker;
+        if (hardStopTimer) clearTimeout(hardStopTimer);
+        hardStopTimer = setTimeout(() => {
+            if (worker === sourceWorker && runtimeStatus === 'stopping') {
+                cleanupWorker();
+                appendConsole(t('python.consoleHardStopped'), { error: true });
+                if (!autoLandIfNeeded()) {
+                    setRuntimeStatus('idle');
+                }
+            }
+        }, 1000);
+    } else if (runtimeStatus !== 'loading') {
+        setRuntimeStatus(controlState.pythonRuntimeAvailable
+            ? (controlState.pythonRuntimeReady ? 'ready' : 'idle')
+            : 'unsupported');
+    }
+
+    // A crashed drone keeps its dead controls; hover otherwise.
     if (droneState.flight.status === 'flying') {
         droneState.throttle = 50;
         droneState.pitch = 0;
@@ -76,26 +424,20 @@ export function stopPythonAutopilot() {
         droneState.yaw = 0;
     }
 
-    const stopBtn = document.getElementById('btn-stop-python');
-    const consoleEl = document.getElementById('python-console');
-
-    setRunButtonState();
-    if (stopBtn) {
-        stopBtn.disabled = true;
-        stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    }
-    if (consoleEl && controlState.mode === 'python') {
-        setDefaultConsoleMessage(consoleEl);
-    }
-
     refreshFlightStatus();
+    setRunButtonState();
 }
 
-// Pyodide is intentionally not wired in this phase. Keeping the hold behavior
-// means Python mode cannot accidentally fly the drone without a runtime.
-export function runPythonStep() {
-    droneState.throttle = 50;
-    droneState.pitch = 0;
-    droneState.roll = 0;
-    droneState.yaw = 0;
+export function refreshPythonUI() {
+    updateStatusText();
+    if (consoleShowsDefaultMessage) {
+        setDefaultConsoleMessage();
+    }
+    setRunButtonState();
+}
+
+// Called from the fixed simulation step. The worker runs Python separately;
+// this function only advances the active Tello command in the main thread.
+export function runPythonStep(dt) {
+    updateTelloCommand(dt);
 }

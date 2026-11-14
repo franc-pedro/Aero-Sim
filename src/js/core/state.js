@@ -70,6 +70,7 @@ export const controlState = {
     mode: 'manual',
     pythonRunning: false,
     pythonRuntimeAvailable: false,
+    pythonRuntimeReady: false,
     simElapsedTime: 0,
 };
 

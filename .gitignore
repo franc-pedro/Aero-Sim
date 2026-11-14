@@ -1,5 +1,6 @@
 node_modules/
 dist/
 .vite/
+public/pyodide/
 *.log
 .DS_Store

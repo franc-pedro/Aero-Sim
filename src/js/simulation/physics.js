@@ -3,7 +3,9 @@ import { controlState, droneState } from '../core/state.js';
 import { pollGamepad } from '../controls/gamepad.js';
 import { handleKeyboard } from '../controls/keyboard.js';
 import { runPythonStep } from '../python/autopilot.js';
+import { abortTelloCommand, TelloCommandError } from '../python/commands.js';
 import { detectCollision, resolveCollision } from './collision.js';
+import { GROUND_HEIGHT } from './constants.js';
 import { checkGateCrossings } from './gates.js';
 
 // --- Flight Model Tuning ---
@@ -15,7 +17,6 @@ const HORIZONTAL_DRAG = 1.8;                 // 1/s
 const VERTICAL_HOLD_DAMPING = 6.0;           // 1/s, altitude-hold vertical damping
 const VERTICAL_ACCEL = 16.0;                 // m/s^2 at full throttle
 const VERTICAL_DRAG = 2.2;                   // 1/s
-const GROUND_HEIGHT = 0.25;
 const GROUND_FRICTION = 7.5;                 // 1/s while level on the ground
 const BOUNDARY_LIMIT = 180;
 const CEILING_LIMIT = 150;
@@ -69,6 +70,7 @@ export function capturePreviousState() {
 // --- Fixed-Step Flight Simulation ---
 export function stepPhysics(dt, world) {
     if (droneState.flight.status === 'crashed') {
+        abortTelloCommand(new TelloCommandError('The drone crashed.', 'crashed'));
         stepCrashed(dt, world);
         return;
     }
