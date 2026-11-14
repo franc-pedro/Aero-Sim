@@ -3,7 +3,7 @@ const RING_TUBE = 0.35;
 
 const spawn = { x: 0, y: 1.5, z: 0, yaw: 0 };
 
-// Gates sit at the midpoint of each side of a 4 x 4 m square. The student
+// Gates sit at the midpoint of each side of a 6 x 6 m square. The student
 // flies one side at a time and returns to the launch pad at the end.
 const gates = [
     { x: 0, y: 4, z: 3, yaw: 0 },
@@ -14,17 +14,8 @@ const gates = [
 
 export const loopLagoon = {
     id: 'loop-lagoon',
-    name: 'Loop Lagoon',
-    difficulty: 'Beginner',
+    difficulty: 'beginner',
     order: 1,
-    description: 'Fly a square through four gates and practise for loops.',
-    i18n: {
-        'pt-PT': {
-            name: 'Lagoa dos Ciclos',
-            difficulty: 'Iniciante',
-            description: 'Voa num quadrado por quatro portais e pratica ciclos for.',
-        },
-    },
     defaultTheme: 'sunset',
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
@@ -55,31 +46,13 @@ export const loopLagoon = {
     pythonMission: {
         example: 'loop',
         focus: 'loops',
-        title: {
-            en: 'Loop Lagoon',
-            pt: 'Lagoa dos Ciclos',
-        },
-        objective: {
-            en: 'Fly a complete square through the four gates using a loop, then land on the green pad.',
-            pt: 'Voa um quadrado completo pelos quatro portais usando um ciclo e aterra na plataforma verde.',
-        },
-        hints: [
-            {
-                en: 'Take off, climb 300 cm and set the speed to 100 cm/s.',
-                pt: 'Descola, sobe 300 cm e define a velocidade para 100 cm/s.',
-            },
-            {
-                en: 'Each side of the square is 600 cm long. Use two move_forward(300) calls.',
-                pt: 'Cada lado do quadrado tem 600 cm. Usa dois move_forward(300).',
-            },
-            {
-                en: 'Use for _ in range(4) and rotate_clockwise(90) after each side.',
-                pt: 'Usa for _ in range(4) e rotate_clockwise(90) depois de cada lado.',
-            },
-            {
-                en: 'After the fourth side you are back over the pad. Call tello.land().',
-                pt: 'Depois do quarto lado estás de novo sobre a plataforma. Chama tello.land().',
-            },
+        titleKey: 'python.mission.loop-lagoon.title',
+        objectiveKey: 'python.mission.loop-lagoon.objective',
+        hintKeys: [
+            'python.mission.loop-lagoon.hint.1',
+            'python.mission.loop-lagoon.hint.2',
+            'python.mission.loop-lagoon.hint.3',
+            'python.mission.loop-lagoon.hint.4',
         ],
         landingPad: { x: 0, z: 0, radius: 3 },
     },

@@ -299,6 +299,21 @@ export function setPythonMission(view) {
     currentMissionView = view || { visible: false };
     if (!view?.visible) {
         panel.classList.add('hidden');
+        panel.classList.remove('python-mission-complete', 'python-mission-failed');
+
+        ['python-mission-title', 'python-mission-focus', 'python-mission-objective',
+            'python-mission-progress', 'python-mission-status'].forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '';
+        });
+
+        const focusElement = document.getElementById('python-mission-focus');
+        const statusElement = document.getElementById('python-mission-status');
+        const hintsElement = document.getElementById('python-mission-hints');
+        focusElement?.classList.add('hidden');
+        statusElement?.classList.add('hidden');
+        hintsElement?.replaceChildren();
+        hintsElement?.classList.add('hidden');
         return;
     }
 

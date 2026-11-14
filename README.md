@@ -1,6 +1,6 @@
 # AERO-SIM
 
-**Versão atual: 1.6.0**
+**Versão atual: 1.6.1**
 
 Simulador de voo de um quadcopter, agora servido como aplicação Vite com HTML, CSS e JavaScript separados.
 
@@ -16,6 +16,7 @@ npm install
 npm run dev      # servidor de desenvolvimento
 npm run build    # build de produção em dist/
 npm run preview  # pré-visualização do build
+npm run check:i18n # valida cobertura e paridade das traduções
 ```
 
 ## Estrutura
@@ -27,7 +28,7 @@ src/css/theme.css       variáveis dos temas Daylight, Sunset e Night Ops
 src/js/main.js          bootstrap, cena Three.js, renderer e eventos
 src/js/config/          configuração dos temas
 src/js/core/            estado, sessão, loop de passo fixo e toast
-src/js/i18n/            catálogos e motor de tradução EN / PT-PT
+src/js/i18n/            catálogos EN/PT-PT, incluindo níveis e missões
 src/js/levels/          registo, RNG e definições dos níveis
 src/js/scene/           level builder e modelo do quadcopter
 src/js/controls/        teclado e gamepad
@@ -39,6 +40,7 @@ src/js/python/errors.js         tradução pedagógica de erros comuns
 src/js/levels/python-playground.js  nível e missão de introdução
 src/py/djitellopy.py    shim Python compatível com a API da djitellopy
 scripts/copy-pyodide.mjs copia os assets do Pyodide para public/pyodide/
+scripts/check-i18n.mjs valida paridade e cobertura das traduções
 docs/python-lab.md      guia do professor e sequência de aulas
 src/js/simulation/      física de voo, colisões, portais e câmara
 public/favicon.svg      favicon local
@@ -153,8 +155,7 @@ Schema resumido de um nível:
 ```js
 export const myLevel = {
     id: 'my-level',
-    name: 'My Level',
-    difficulty: 'Beginner',
+    difficulty: 'beginner',
     order: 1,
     defaultTheme: 'daylight',
     spawn: { x: 0, y: 1.5, z: 0, yaw: 0 },
@@ -167,16 +168,32 @@ export const myLevel = {
     pythonMission: {
         example: 'loop',
         focus: 'loops',
-        title: { en: 'My Mission', 'pt-PT': 'A Minha Missão' },
-        objective: { en: '...', 'pt-PT': '...' },
-        hints: [{ en: '...', 'pt-PT': '...' }],
+        titleKey: 'python.mission.my-level.title',
+        objectiveKey: 'python.mission.my-level.objective',
+        hintKeys: [
+            'python.mission.my-level.hint.1',
+            'python.mission.my-level.hint.2',
+        ],
         landingPad: { x: 0, z: 15, radius: 3 },
     },
     decor: [{ type: 'box', x: 0, y: 25, z: 0, width: 18, height: 50, depth: 18 }],
 };
 ```
 
-`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. `pythonMission.example` indica a chave do exemplo de arranque em `src/js/python/presets.js` e `pythonMission.focus` escolhe a etiqueta pedagógica (`sequence`, `loops`, `functions` ou `obstacles`). Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência. Para adicionar um nível basta criar o ficheiro em `src/js/levels/` e registá-lo em `src/js/levels/index.js`.
+`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. `pythonMission.example` indica a chave do exemplo de arranque em `src/js/python/presets.js` e `pythonMission.focus` escolhe a etiqueta pedagógica (`sequence`, `loops`, `functions` ou `obstacles`). Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência.
+
+Todo o texto de apresentação de um nível — nome, descrição, dificuldade, missão, objetivo e dicas — vive em `src/js/i18n/en.js` e `src/js/i18n/pt-PT.js`. As chaves seguem o padrão:
+
+```text
+level.<id>.name
+level.<id>.description
+level.difficulty.<token>
+python.mission.<id>.title
+python.mission.<id>.objective
+python.mission.<id>.hint.<n>
+```
+
+Para adicionar um nível: criar o ficheiro em `src/js/levels/`, registá-lo em `src/js/levels/index.js` e acrescentar as chaves correspondentes aos dois catálogos. O comando `npm run check:i18n` valida os dois passos.
 
 O contador `GATES` no header acompanha os portais atravessados. Quando todos são passados surge uma notificação de percurso completo; passar pela moldura provoca crash e o reset limpa o progresso.
 
@@ -186,9 +203,10 @@ A interface suporta **English** e **Português (Portugal)**. O seletor no header
 
 A implementação é local e não usa dependências externas:
 
-- `src/js/i18n/en.js` e `src/js/i18n/pt-PT.js` — catálogos de chaves planas;
+- `src/js/i18n/en.js` e `src/js/i18n/pt-PT.js` — catálogos de chaves planas, incluindo nomes de níveis, descrições, dificuldades e texto das missões;
 - `src/js/i18n/index.js` — `t()`, deteção, persistência, `formatNumber()` e aplicação de `data-i18n`;
-- `src/js/ui/language.js` — seletor de idioma.
+- `src/js/ui/language.js` — seletor de idioma;
+- `scripts/check-i18n.mjs` — valida paridade e cobertura das chaves usadas pelos níveis e missões.
 
 O HTML estático usa `data-i18n`, `data-i18n-title` e `data-i18n-aria-label`; os componentes dinâmicos são atualizados por `refreshLocalizedUI()` no `main.js`. Os números de telemetria e de impacto usam o formato da locale (`1,5` em PT-PT).
 
@@ -225,6 +243,7 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 27. Provocar um crash com `tello.emergency()`: confirmar o estado vermelho da missão, o badge `CRASHED` e que **Reset Pos** repõe `0/x`.
 28. Premir **Reset Pos** e confirmar que o drone volta ao chão; fechar o laboratório com **X** e confirmar o spawn normal e o controlo manual.
 29. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
+30. Executar `npm run check:i18n` e confirmar que os 6 níveis e as 4 missões têm todas as chaves nos dois catálogos.
 
 ## Licenças
 

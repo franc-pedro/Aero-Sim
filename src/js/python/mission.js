@@ -1,6 +1,6 @@
 import { droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
-import { getLocale, t } from '../i18n/index.js';
+import { t } from '../i18n/index.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { isTelloFlightActive } from './commands.js';
 
@@ -25,13 +25,6 @@ function countGates() {
     return (levelDef?.rings || []).filter((ring) => ring.gate !== false).length;
 }
 
-function localize(value) {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    const locale = getLocale();
-    return value[locale] ?? value.pt ?? value.en ?? '';
-}
-
 function isOnPad() {
     if (!missionDef || !levelDef) return false;
 
@@ -49,9 +42,9 @@ function buildView() {
     const focus = missionDef?.focus || null;
     return {
         visible: Boolean(missionDef),
-        title: localize(missionDef?.title),
-        objective: localize(missionDef?.objective),
-        hints: (missionDef?.hints || []).map(localize),
+        title: missionDef?.titleKey ? t(missionDef.titleKey) : '',
+        objective: missionDef?.objectiveKey ? t(missionDef.objectiveKey) : '',
+        hints: (missionDef?.hintKeys || []).map((key) => t(key)),
         focus,
         focusLabel: focus ? t(`python.focus.${focus}`) : '',
         gatesPassed: state.gatesPassed,

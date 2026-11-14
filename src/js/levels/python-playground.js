@@ -24,17 +24,8 @@ function buildRings() {
 
 export const pythonPlayground = {
     id: 'python-playground',
-    name: 'Python Playground',
-    difficulty: 'Beginner',
+    difficulty: 'beginner',
     order: 0,
-    description: 'A compact three-gate course designed for the Python Lab.',
-    i18n: {
-        'pt-PT': {
-            name: 'Playground Python',
-            difficulty: 'Iniciante',
-            description: 'Um percurso compacto de três portais para o Laboratório Python.',
-        },
-    },
     defaultTheme: 'daylight',
     spawn,
     bounds: { halfSize: 40, ceiling: 30 },
@@ -61,31 +52,13 @@ export const pythonPlayground = {
     pythonMission: {
         example: 'playground',
         focus: 'sequence',
-        title: {
-            en: 'Playground Circuit',
-            pt: 'Circuito do Playground',
-        },
-        objective: {
-            en: 'Take off, fly through all three rings and land on the green pad.',
-            pt: 'Descola, atravessa os três anéis e aterra na plataforma verde.',
-        },
-        hints: [
-            {
-                en: 'Start with tello.connect() and tello.takeoff().',
-                pt: 'Começa com tello.connect() e tello.takeoff().',
-            },
-            {
-                en: 'Climb to the first ring with move_up(300), then move_forward(400).',
-                pt: 'Sobe até ao primeiro anel com move_up(300) e depois move_forward(400).',
-            },
-            {
-                en: 'Climb 100 cm before each of the next two rings.',
-                pt: 'Sobe 100 cm antes de cada um dos dois anéis seguintes.',
-            },
-            {
-                en: 'After the third ring, move forward 300 cm to the green pad and call tello.land().',
-                pt: 'Depois do terceiro anel, avança 300 cm até à plataforma verde e chama tello.land().',
-            },
+        titleKey: 'python.mission.python-playground.title',
+        objectiveKey: 'python.mission.python-playground.objective',
+        hintKeys: [
+            'python.mission.python-playground.hint.1',
+            'python.mission.python-playground.hint.2',
+            'python.mission.python-playground.hint.3',
+            'python.mission.python-playground.hint.4',
         ],
         landingPad: missionPad,
     },

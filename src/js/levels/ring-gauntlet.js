@@ -34,17 +34,8 @@ function buildRings() {
 
 export const ringGauntlet = {
     id: 'ring-gauntlet',
-    name: 'Ring Gauntlet',
-    difficulty: 'Intermediate',
+    difficulty: 'intermediate',
     order: 5,
-    description: 'A climbing slalom of eight gates between the monoliths.',
-    i18n: {
-        'pt-PT': {
-            name: 'Circuito de Anéis',
-            difficulty: 'Intermédio',
-            description: 'Um slalom ascendente de oito portais entre os monólitos.',
-        },
-    },
     defaultTheme: 'sunset',
     spawn,
     bounds: { halfSize: 200, ceiling: 150 },

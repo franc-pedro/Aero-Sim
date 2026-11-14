@@ -19,17 +19,8 @@ const gates = [
 
 export const functionForge = {
     id: 'function-forge',
-    name: 'Function Forge',
-    difficulty: 'Intermediate',
+    difficulty: 'intermediate',
     order: 2,
-    description: 'Repeat the same square at two altitudes with a reusable function.',
-    i18n: {
-        'pt-PT': {
-            name: 'Forja de Funções',
-            difficulty: 'Intermédio',
-            description: 'Repete o mesmo quadrado a duas altitudes com uma função reutilizável.',
-        },
-    },
     defaultTheme: 'night',
     spawn,
     bounds: { halfSize: 30, ceiling: 40 },
@@ -60,31 +51,13 @@ export const functionForge = {
     pythonMission: {
         example: 'functions',
         focus: 'functions',
-        title: {
-            en: 'Function Forge',
-            pt: 'Forja de Funções',
-        },
-        objective: {
-            en: 'Repeat the square at two altitudes using one reusable function, then land on the pad.',
-            pt: 'Repete o quadrado a duas altitudes com uma função reutilizável e aterra na plataforma.',
-        },
-        hints: [
-            {
-                en: 'Define fly_square() with a loop that flies four 600 cm sides (two move_forward(300)).',
-                pt: 'Define fly_square() com um ciclo que percorre quatro lados de 600 cm (dois move_forward(300)).',
-            },
-            {
-                en: 'Call fly_square() once at 4 m.',
-                pt: 'Chama fly_square() uma vez a 4 m.',
-            },
-            {
-                en: 'Climb 700 cm with move_up(500) and move_up(200), then call fly_square() again.',
-                pt: 'Sobe 700 cm com move_up(500) e move_up(200) e chama fly_square() outra vez.',
-            },
-            {
-                en: 'After the second square you are back over the pad. Land with tello.land().',
-                pt: 'Depois do segundo quadrado estás de novo sobre a plataforma. Aterra com tello.land().',
-            },
+        titleKey: 'python.mission.function-forge.title',
+        objectiveKey: 'python.mission.function-forge.objective',
+        hintKeys: [
+            'python.mission.function-forge.hint.1',
+            'python.mission.function-forge.hint.2',
+            'python.mission.function-forge.hint.3',
+            'python.mission.function-forge.hint.4',
         ],
         landingPad: { x: 0, z: 0, radius: 3 },
     },

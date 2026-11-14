@@ -1,4 +1,4 @@
-import { getLocale } from '../i18n/index.js';
+import { t } from '../i18n/index.js';
 import { functionForge } from './function-forge.js';
 import { loopLagoon } from './loop-lagoon.js';
 import { obstacleAlley } from './obstacle-alley.js';
@@ -27,10 +27,10 @@ export function listLevels() {
 export function getLevelText(def) {
     if (!def) return { name: '', difficulty: '', description: '' };
 
-    const localized = def.i18n?.[getLocale()] || {};
+    const base = `level.${def.id}`;
     return {
-        name: localized.name ?? def.name,
-        difficulty: localized.difficulty ?? def.difficulty,
-        description: localized.description ?? def.description,
+        name: t(`${base}.name`),
+        difficulty: t(`level.difficulty.${def.difficulty}`),
+        description: t(`${base}.description`),
     };
 }

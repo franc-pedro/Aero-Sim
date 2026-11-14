@@ -1,6 +1,6 @@
 {
   "name": "aero-sim",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "type": "module",
   "description": "Quadcopter drone flight simulator",
@@ -9,9 +9,10 @@
   },
   "scripts": {
     "setup:pyodide": "node scripts/copy-pyodide.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "predev": "npm run setup:pyodide",
     "dev": "vite",
-    "prebuild": "npm run setup:pyodide",
+    "prebuild": "npm run setup:pyodide && npm run check:i18n",
     "build": "vite build",
     "preview": "vite preview"
   },

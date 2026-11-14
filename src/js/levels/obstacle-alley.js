@@ -12,17 +12,8 @@ const gates = [
 
 export const obstacleAlley = {
     id: 'obstacle-alley',
-    name: 'Obstacle Alley',
-    difficulty: 'Intermediate',
+    difficulty: 'intermediate',
     order: 3,
-    description: 'A zig-zag of gates between towers, with a green landing pad at the end.',
-    i18n: {
-        'pt-PT': {
-            name: 'Corredor de Obstáculos',
-            difficulty: 'Intermédio',
-            description: 'Um zig-zag de portais entre torres, com uma plataforma verde no final.',
-        },
-    },
     defaultTheme: 'sunset',
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
@@ -58,31 +49,13 @@ export const obstacleAlley = {
     pythonMission: {
         example: 'obstacles',
         focus: 'obstacles',
-        title: {
-            en: 'Obstacle Alley',
-            pt: 'Corredor de Obstáculos',
-        },
-        objective: {
-            en: 'Fly the zig-zag through the three gates between the towers and land on the green pad.',
-            pt: 'Faz o zig-zag pelos três portais entre as torres e aterra na plataforma verde.',
-        },
-        hints: [
-            {
-                en: 'Take off, climb 300 cm and fly forward 500 cm to the first gate.',
-                pt: 'Descola, sobe 300 cm e avança 500 cm até ao primeiro portal.',
-            },
-            {
-                en: 'After the first gate, rotate_clockwise(45) and fly about 700 cm to the second gate.',
-                pt: 'Depois do primeiro portal, usa rotate_clockwise(45) e voa cerca de 700 cm até ao segundo.',
-            },
-            {
-                en: 'Then rotate_counter_clockwise(45) and fly 500 cm to the third gate.',
-                pt: 'Depois usa rotate_counter_clockwise(45) e voa 500 cm até ao terceiro.',
-            },
-            {
-                en: 'After the third gate, move forward 300 cm to the green pad and land.',
-                pt: 'Depois do terceiro portal, avança 300 cm até à plataforma verde e aterra.',
-            },
+        titleKey: 'python.mission.obstacle-alley.title',
+        objectiveKey: 'python.mission.obstacle-alley.objective',
+        hintKeys: [
+            'python.mission.obstacle-alley.hint.1',
+            'python.mission.obstacle-alley.hint.2',
+            'python.mission.obstacle-alley.hint.3',
+            'python.mission.obstacle-alley.hint.4',
         ],
         landingPad: missionPad,
     },
