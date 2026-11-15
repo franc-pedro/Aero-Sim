@@ -1,6 +1,6 @@
 # Guia do Professor — Laboratório Python
 
-Este guia acompanha o **AERO-SIM 1.7.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
+Este guia acompanha o **AERO-SIM 1.7.1** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
 
 ## 1. O que os alunos aprendem
 
@@ -54,7 +54,13 @@ Para preparar uma versão para a escola:
 npm run build
 ```
 
-O conteúdo de `dist/` pode ser servido por um servidor estático. O Pyodide e o CodeMirror são servidos localmente; não são necessários CDNs. O primeiro carregamento é maior (Pyodide + CodeMirror); as utilizações seguintes reutilizam a cache do browser.
+O conteúdo de `dist/` pode ser servido por um servidor estático. A versão online de referência está em:
+
+```text
+https://franc-pedro.gitlab.io/drone-sim/
+```
+
+O deploy é automático no GitLab Pages a cada push para o branch principal. O Pyodide e o CodeMirror são servidos localmente; não são necessários CDNs. O primeiro carregamento é maior (Pyodide + CodeMirror); as utilizações seguintes reutilizam a cache do browser.
 
 O código dos alunos fica no `localStorage` do browser, por nível. Não é enviado para nenhum servidor.
 

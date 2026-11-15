@@ -1,8 +1,14 @@
 # AERO-SIM
 
-**Versão atual: 1.7.0**
+**Versão atual: 1.7.1**
 
 Simulador de voo de um quadcopter, agora servido como aplicação Vite com HTML, CSS e JavaScript separados.
+
+## Novidades 1.7.1
+
+- Publicação automática no **GitLab Pages**.
+- Licença do projeto em **MIT**.
+- Documentação de deploy, acesso público e requisitos de browser.
 
 ## Novidades 1.7.0
 
@@ -147,6 +153,23 @@ O projeto usa `base: './'` no Vite, pelo que o conteúdo de `dist/` pode ser ser
 
 O deploy tem de incluir `dist/pyodide/` e servir `.wasm` com o MIME `application/wasm`. JSPI requer um contexto seguro (HTTPS ou `localhost`). Não são necessários headers `COOP`/`COEP` para a arquitetura atual.
 
+### GitLab Pages
+
+O deploy para o GitLab Pages é automático através do ficheiro `.gitlab-ci.yml`:
+
+1. `npm ci` instala as dependências.
+2. `npm run build` valida as traduções, copia o Pyodide e gera `dist/`.
+3. O conteúdo de `dist/` é publicado como artefacto `public/`.
+4. O deploy corre apenas no branch principal (`$CI_DEFAULT_BRANCH`).
+
+URL esperado:
+
+```text
+https://franc-pedro.gitlab.io/drone-sim/
+```
+
+Para que professores e alunos possam abrir a aplicação sem conta, o projeto deve ser público ou o acesso ao Pages deve estar configurado para **Everyone**. O Python Lab requer um browser com JSPI; sem JSPI, o modo manual continua disponível.
+
 ## Simulação e fluidez
 
 A física corre a 120 Hz num loop de passo fixo (`src/js/core/loop.js`) e o render interpola entre passos. A câmara usa amortecimento independente do framerate, pelo que o comportamento é consistente a 60, 120 ou 144 Hz.
@@ -278,6 +301,8 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 34. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
 35. Executar `npm run check:i18n` e confirmar que os 9 níveis e as 7 missões têm todas as chaves nos dois catálogos.
 
-## Licenças
+## Licença
 
-Ver `THIRD_PARTY_NOTICES.md`.
+O código do AERO-SIM é distribuído sob a **licença MIT**. Consulta [`LICENSE`](LICENSE).
+
+As bibliotecas de terceiros mantêm as respetivas licenças; consulta [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
