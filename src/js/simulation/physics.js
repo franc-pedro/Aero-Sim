@@ -56,11 +56,11 @@ function wrapAngle(angle) {
 
 // Sample manual controls once per render frame. Python mode is stepped inside
 // the fixed simulation step so scripts receive a stable dt.
-export function sampleInput() {
+export function sampleInput(frameDt = 1 / 60) {
     if (controlState.mode !== 'manual' || droneState.flight.status !== 'flying') return;
     pollGamepad();
     handleKeyboard();
-    applyTouchControls();
+    applyTouchControls(frameDt);
 }
 
 // Called by the loop before each fixed step.

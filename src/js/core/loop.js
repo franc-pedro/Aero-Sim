@@ -101,7 +101,7 @@ export function startLoop({ scene, camera, renderer, world }) {
         }
 
         const frameDt = Math.min(Math.max(rawDt, 0), MAX_FRAME_DT);
-        sampleInput();
+        sampleInput(frameDt);
 
         accumulator += frameDt;
         lastSteps = 0;

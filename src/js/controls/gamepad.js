@@ -14,6 +14,7 @@ function applyDeadzone(value) {
 export function updateGamepadUI(connected, name = '') {
     const dot = document.getElementById('gamepad-dot');
     const text = document.getElementById('gamepad-text');
+    document.body.classList.toggle('gamepad-connected', Boolean(connected));
     if (!dot || !text) return;
 
     if (connected) {

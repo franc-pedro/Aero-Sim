@@ -36,7 +36,7 @@ export const pythonPlayground = {
         pillar: 0x3b82f6,
         hazard: 0xf43f5e,
         tower: 0x334155,
-        ring: 0x0ea5e9,
+        ring: 0x3b82f6,
         decor: 0x475569,
     },
     obstacles: [

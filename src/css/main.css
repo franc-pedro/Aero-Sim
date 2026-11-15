@@ -8,10 +8,10 @@
     body {
         margin: 0;
         overflow: hidden;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Nunito Variable', 'Nunito', 'Segoe UI', system-ui, sans-serif;
         background-color: var(--bg-body);
         color: var(--text-primary);
-        transition: background-color 0.35s ease, color 0.35s ease;
+        transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     #canvas-container {
@@ -1002,4 +1002,573 @@ body.touch-ui #touch-controls button:focus-visible {
         top: 8.5rem;
         left: calc((100vw - var(--lab-width)) / 2);
     }
+}
+
+/* --- Clean school identity --- */
+#ui-overlay .glass-panel,
+.python-lab-panel,
+.python-watch-bar {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: none;
+}
+
+#ui-overlay .glass-panel {
+    border-radius: var(--radius-lg);
+}
+
+#ui-overlay .sub-card,
+.python-lab-reference .sub-card {
+    background: var(--surface-muted);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+#ui-overlay header h1 {
+    color: var(--text-primary);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+#ui-overlay header .theme-accent-text {
+    color: var(--accent);
+}
+
+#level-select,
+#language-select {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-weight: 700;
+}
+
+#level-select:hover,
+#language-select:hover {
+    border-color: var(--border-strong);
+}
+
+#level-select:focus-visible,
+#language-select:focus-visible,
+.mode-tab:focus-visible,
+.theme-tab:focus-visible,
+button:focus-visible,
+.python-watch-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.mode-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.8rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mode-tab:hover {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.mode-tab-active,
+.mode-tab-active:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.theme-switch {
+    gap: 0.15rem;
+    border-radius: 10px;
+}
+
+.theme-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.42rem 0.6rem;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.theme-tab:hover {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.theme-tab-active,
+.theme-tab-active:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.theme-tab i {
+    font-size: 11px;
+}
+
+#toast {
+    top: 7.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+    color: var(--text-primary);
+    backdrop-filter: none;
+}
+
+#gamepad-status-badge {
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+#bottom-hud .glass-panel {
+    border-radius: var(--radius-lg);
+}
+
+#bottom-hud .sub-card {
+    border-radius: var(--radius-md);
+}
+
+#btn-run-python {
+    background: var(--success);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+#btn-stop-python {
+    background: var(--danger);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+[data-theme="night"] #btn-run-python,
+[data-theme="night"] #btn-stop-python {
+    color: #08111f;
+}
+
+#btn-reset-drone,
+#btn-python-reference,
+#btn-python-lesson,
+#btn-python-progress {
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+#python-progress-count {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+/* Code workspace panels keep dark code blocks on a light/neutral shell. */
+.python-lab-panel {
+    background: var(--surface);
+    border-left-color: var(--border);
+    box-shadow: -8px 0 24px rgba(23, 32, 51, 0.06);
+}
+
+.python-lab-header,
+.python-lab-console-header {
+    border-color: var(--border);
+}
+
+.python-lab-reference {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.python-lab-reference .theme-muted-text {
+    color: var(--text-secondary) !important;
+}
+
+.python-lab-reference .sub-card {
+    background: var(--surface-muted);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+.python-ref-group-title,
+.python-ref-signature,
+.python-lesson-focus,
+.python-lesson-section-title {
+    color: var(--accent);
+}
+
+.python-ref-method {
+    border-radius: var(--radius-md);
+}
+
+.python-ref-method:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-muted);
+}
+
+.python-ref-description,
+.python-lesson-intro,
+.python-lesson-list,
+.python-lesson-caption,
+.python-progress-meta,
+.python-progress-local {
+    color: var(--text-secondary);
+}
+
+.python-ref-example {
+    color: var(--success);
+}
+
+.python-lesson-quiz {
+    border-top-color: var(--border);
+}
+
+.python-lesson-quiz-question {
+    color: var(--text-primary);
+}
+
+.python-lesson-syntax {
+    border-color: var(--border);
+    background: var(--code-bg);
+    color: var(--code-accent);
+}
+
+.python-quiz-option {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.python-quiz-option:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.python-quiz-option.python-quiz-correct {
+    border-color: var(--success);
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.python-quiz-option.python-quiz-wrong {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.python-quiz-feedback-muted {
+    color: var(--text-secondary);
+}
+
+.python-quiz-feedback-correct {
+    color: var(--success);
+}
+
+.python-quiz-feedback-wrong {
+    color: var(--danger);
+}
+
+.python-progress-summary {
+    color: var(--text-primary);
+}
+
+.python-progress-count {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.python-progress-item {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.python-progress-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.python-progress-item.python-progress-current {
+    border-color: var(--accent);
+}
+
+.python-progress-status {
+    background: var(--surface);
+    color: var(--text-secondary);
+}
+
+.python-progress-done .python-progress-status {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.python-progress-reset {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.python-progress-reset:hover {
+    background: var(--danger-soft);
+    filter: saturate(1.2);
+}
+
+.python-lab-mission {
+    border-color: var(--border);
+    background: var(--surface-muted);
+}
+
+.python-lab-mission.python-mission-complete {
+    border-color: var(--success);
+    background: var(--success-soft);
+}
+
+.python-lab-mission.python-mission-failed {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+}
+
+.python-mission-tag {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.python-mission-focus {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.python-mission-hints-btn {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+}
+
+.python-mission-status {
+    color: var(--success);
+}
+
+.python-mission-failed .python-mission-status {
+    color: var(--danger);
+}
+
+.python-lab-editor {
+    border-color: var(--border);
+    background: var(--code-bg);
+}
+
+.python-console-body {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.python-console-body.python-console-error {
+    color: var(--danger);
+}
+
+.python-lab-footer {
+    color: var(--text-secondary);
+}
+
+.python-save-status[data-state="saving"] {
+    color: var(--warning);
+}
+
+.python-save-status[data-state="saved"] {
+    color: var(--success);
+}
+
+.python-save-status[data-state="error"] {
+    color: var(--danger);
+}
+
+.python-lab-reference .python-ref-signature {
+    color: var(--accent);
+}
+
+/* Touch controls: flat, high-contrast and friendly. */
+.touch-hud {
+    gap: 0.75rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow-control);
+    color: var(--text-secondary);
+    backdrop-filter: none;
+}
+
+.touch-hud strong {
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.touch-stick-base {
+    border: 2px solid var(--border-strong);
+    background: var(--surface-muted);
+    box-shadow:
+        inset 0 0 0 10px var(--surface),
+        var(--shadow-control);
+    backdrop-filter: none;
+}
+
+.touch-stick-base:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.touch-stick-knob {
+    border: 4px solid var(--surface);
+    background: var(--accent);
+    box-shadow: var(--shadow-control);
+}
+
+.touch-stick-label {
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+
+.touch-reset {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-control);
+    color: var(--text-primary);
+    backdrop-filter: none;
+}
+
+.touch-reset:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.python-watch-bar {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: none;
+}
+
+.python-watch-btn {
+    border-color: var(--border);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+.python-watch-stop {
+    border-color: transparent;
+    background: var(--danger);
+    color: #ffffff;
+}
+
+[data-theme="night"] .python-watch-stop {
+    color: #1b0b0f;
+}
+
+/* Small utility overrides that keep legacy HUD accents on the new palette. */
+#ui-overlay .border-sky-500 {
+    border-color: var(--accent);
+}
+
+#ui-overlay .bg-sky-500 {
+    background-color: var(--accent);
+}
+
+#ui-overlay .bg-emerald-500 {
+    background-color: var(--success);
+}
+
+#gamepad-dot {
+    box-shadow: none !important;
+}
+
+#gamepad-dot.bg-emerald-500 {
+    background: var(--success) !important;
+}
+
+#gamepad-dot.bg-rose-500 {
+    background: var(--danger) !important;
+}
+
+#axes-bar-container .bg-cyan-400 {
+    background: var(--accent) !important;
+}
+
+#axes-bar-container .bg-emerald-400 {
+    background: var(--success) !important;
+}
+
+#axes-bar-container .bg-slate-800 {
+    background: var(--border) !important;
+}
+
+#axes-bar-container .text-slate-400,
+#axes-bar-container .text-slate-600 {
+    color: var(--text-secondary) !important;
+}
+
+#stick-left-dot,
+#stick-right-dot {
+    box-shadow: none !important;
+}
+
+#gamepad-status-badge {
+    display: none;
+}
+
+body.gamepad-connected #gamepad-status-badge {
+    display: flex;
+}
+
+#bottom-hud .gamepad-calibration {
+    display: none;
+}
+
+body.gamepad-connected #bottom-hud .gamepad-calibration {
+    display: flex;
+}
+
+@media (min-width: 768px) {
+    body:not(.gamepad-connected) #bottom-hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* One clean app bar instead of several floating header cards. */
+#ui-overlay header {
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+}
+
+#ui-overlay header .glass-panel {
+    padding: 0.2rem;
+    border-color: transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    box-shadow: none;
+}
+
+#ui-overlay header .glass-panel:first-child {
+    padding: 0.55rem 0.7rem;
+}
+
+#ui-overlay header .sub-card {
+    border-color: var(--border);
+    background: var(--surface-muted);
 }

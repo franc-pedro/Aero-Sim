@@ -24,7 +24,7 @@ export const variableValley = {
         pillar: 0x14b8a6,
         hazard: 0xf43f5e,
         tower: 0x334155,
-        ring: 0x8b5cf6,
+        ring: 0x6366f1,
         decor: 0x475569,
     },
     obstacles: [

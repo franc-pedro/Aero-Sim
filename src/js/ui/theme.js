@@ -6,14 +6,11 @@ export function applyTheme(themeName, world) {
     document.body.setAttribute('data-theme', themeName);
 
     // Update theme button highlights
-    ['daylight', 'sunset', 'night'].forEach((t) => {
+    ['daylight', 'night'].forEach((t) => {
         const btn = document.getElementById(`theme-btn-${t}`);
         if (!btn) return;
-        if (t === themeName) {
-            btn.className = `px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${SCENE_THEMES[t].btnClass}`;
-        } else {
-            btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80';
-        }
+        btn.className = t === themeName ? 'theme-tab theme-tab-active' : 'theme-tab';
+        btn.setAttribute('aria-pressed', String(t === themeName));
     });
 
     // Update 3D Scene Atmosphere & Lighting

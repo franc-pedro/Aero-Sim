@@ -1,4 +1,5 @@
 import '../css/main.css';
+import '@fontsource-variable/nunito/wght.css';
 import '@fortawesome/fontawesome-free/css/fontawesome.css';
 import '@fortawesome/fontawesome-free/css/solid.css';
 import '@fortawesome/fontawesome-free/css/brands.css';
@@ -168,7 +169,6 @@ function init() {
     document.getElementById('btn-close-python-lab').addEventListener('click', enterManualMode);
 
     document.getElementById('theme-btn-daylight').addEventListener('click', () => applyTheme('daylight', world));
-    document.getElementById('theme-btn-sunset').addEventListener('click', () => applyTheme('sunset', world));
     document.getElementById('theme-btn-night').addEventListener('click', () => applyTheme('night', world));
 
     document.getElementById('python-preset-select').addEventListener('change', (e) => {

@@ -24,7 +24,7 @@ export const sensorSummit = {
         pillar: 0x8b5cf6,
         hazard: 0xf43f5e,
         tower: 0x1e293b,
-        ring: 0x2dd4bf,
+        ring: 0x14b8a6,
         decor: 0x334155,
     },
     obstacles: [

@@ -16,7 +16,7 @@ export const loopLagoon = {
     id: 'loop-lagoon',
     difficulty: 'beginner',
     order: 1,
-    defaultTheme: 'sunset',
+    defaultTheme: 'daylight',
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
     ground: { size: 80, divisions: 32 },
@@ -25,7 +25,7 @@ export const loopLagoon = {
         pillar: 0x3b82f6,
         hazard: 0xf43f5e,
         tower: 0x334155,
-        ring: 0xfb923c,
+        ring: 0xf59e0b,
         decor: 0x475569,
     },
     obstacles: [

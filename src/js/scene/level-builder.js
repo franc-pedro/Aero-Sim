@@ -10,7 +10,7 @@ const DEFAULT_PALETTE = {
     pillar: 0x3b82f6,
     hazard: 0xf43f5e,
     tower: 0x334155,
-    ring: 0x06b6d4,
+    ring: 0x3b82f6,
     decor: 0x475569,
 };
 
@@ -58,8 +58,8 @@ function makeObstacleMaterials(palette) {
         if (!cache.has(key)) {
             cache.set(key, new THREE.MeshStandardMaterial({
                 color: palette[key] ?? palette.pillar,
-                roughness: 0.4,
-                metalness: 0.5,
+                roughness: 0.62,
+                metalness: 0.15,
             }));
         }
         return cache.get(key);
@@ -108,11 +108,11 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         const padMaterial = new THREE.MeshStandardMaterial({
             color: padColor,
             emissive: padColor,
-            emissiveIntensity: padDef.emissiveIntensity ?? 0.18,
-            roughness: 0.55,
-            metalness: 0.2,
+            emissiveIntensity: padDef.emissiveIntensity ?? 0.08,
+            roughness: 0.62,
+            metalness: 0.1,
             transparent: true,
-            opacity: padDef.opacity ?? 0.6,
+            opacity: padDef.opacity ?? 0.45,
             side: THREE.DoubleSide,
         });
 
@@ -161,12 +161,13 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     });
 
     // Rings and gates
+    const ringColor = new THREE.Color(palette.ring).lerp(new THREE.Color(0x94a3b8), 0.3);
     const ringMat = new THREE.MeshStandardMaterial({
-        color: palette.ring,
-        emissive: palette.ring,
-        emissiveIntensity: 0.4,
-        roughness: 0.35,
-        metalness: 0.3,
+        color: ringColor,
+        emissive: ringColor,
+        emissiveIntensity: 0.08,
+        roughness: 0.52,
+        metalness: 0.12,
     });
     const rings = [];
     const gates = [];
@@ -214,8 +215,8 @@ export function buildLevel(def, scene, themeName = 'daylight') {
 
         const material = new THREE.MeshStandardMaterial({
             color: decor.color ?? palette.decor,
-            roughness: decor.roughness ?? 0.8,
-            metalness: decor.metalness ?? 0.2,
+            roughness: decor.roughness ?? 0.82,
+            metalness: decor.metalness ?? 0.05,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(decor.x ?? 0, decor.y ?? 0, decor.z ?? 0);

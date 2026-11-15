@@ -4,3 +4,6 @@ dist/
 public/pyodide/
 *.log
 .DS_Store
+
+# Local notes, not published
+README.local.md

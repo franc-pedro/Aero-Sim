@@ -36,7 +36,7 @@ export const ringGauntlet = {
     id: 'ring-gauntlet',
     difficulty: 'intermediate',
     order: 101,
-    defaultTheme: 'sunset',
+    defaultTheme: 'night',
     spawn,
     bounds: { halfSize: 200, ceiling: 150 },
     ground: { size: 440, divisions: 88 },
@@ -44,7 +44,7 @@ export const ringGauntlet = {
         pillar: 0x7c3aed,
         hazard: 0xf97316,
         tower: 0x475569,
-        ring: 0xfbbf24,
+        ring: 0xf59e0b,
         decor: 0x334155,
     },
     obstacles: [

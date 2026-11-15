@@ -1,10 +1,28 @@
 import { droneState } from '../core/state.js';
 
-const DEADZONE = 0.12;
+// Soft touch profile: a larger deadzone, a gentle response curve and a
+// smoothed output make small screen corrections much less abrupt.
+const DEADZONE = 0.16;
+const EXPO = 1.8;
+const MAX_PITCH = 0.6;
+const MAX_ROLL = 0.6;
+const MAX_YAW = 0.5;
+const MAX_THROTTLE_OFFSET = 25;
+const AXIS_RESPONSE = 0.16;
+const THROTTLE_RESPONSE = 0.2;
+const RELEASE_RESPONSE = 0.25;
+const NEUTRAL_EPSILON = 0.015;
 
 const sticks = {
     left: { x: 0, y: 0, pointerId: null, active: false, base: null, knob: null },
     right: { x: 0, y: 0, pointerId: null, active: false, base: null, knob: null },
+};
+
+const output = {
+    throttle: 50,
+    yaw: 0,
+    pitch: 0,
+    roll: 0,
 };
 
 let initialized = false;
@@ -13,6 +31,22 @@ let mediaQuery = null;
 
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+}
+
+function shapeAxis(value) {
+    return Math.sign(value) * (Math.abs(value) ** EXPO);
+}
+
+function approach(current, target, dt, responseTime) {
+    const alpha = 1 - Math.exp(-dt / responseTime);
+    return current + (target - current) * alpha;
+}
+
+function isOutputNeutral() {
+    return Math.abs(output.throttle - 50) < NEUTRAL_EPSILON
+        && Math.abs(output.yaw) < NEUTRAL_EPSILON
+        && Math.abs(output.pitch) < NEUTRAL_EPSILON
+        && Math.abs(output.roll) < NEUTRAL_EPSILON;
 }
 
 function setKnobPosition(stick) {
@@ -132,21 +166,47 @@ export function initTouchControls({ onReset: resetCallback } = {}) {
 export function resetTouchControls() {
     resetStick(sticks.left);
     resetStick(sticks.right);
+    output.throttle = 50;
+    output.yaw = 0;
+    output.pitch = 0;
+    output.roll = 0;
 }
 
-// Called once per fixed simulation step in manual mode. Returns true when a
-// virtual stick is being touched, so gamepad/keyboard values are overridden.
-export function applyTouchControls() {
-    if (!initialized || (!sticks.left.active && !sticks.right.active)) {
-        return false;
-    }
+// Called once per render frame in manual mode. The target comes directly from
+// the stick, but the output is shaped and smoothed before reaching the drone.
+export function applyTouchControls(dt = 1 / 60) {
+    if (!initialized) return false;
 
+    const active = sticks.left.active || sticks.right.active;
+    if (!active && isOutputNeutral()) return false;
+
+    const safeDt = clamp(Number(dt) || 1 / 60, 0.001, 0.05);
     const left = sticks.left.active ? sticks.left : { x: 0, y: 0 };
     const right = sticks.right.active ? sticks.right : { x: 0, y: 0 };
 
-    droneState.throttle = clamp(50 - left.y * 50, 0, 100);
-    droneState.yaw = clamp(-left.x, -1, 1);
-    droneState.pitch = clamp(-right.y, -1, 1);
-    droneState.roll = clamp(right.x, -1, 1);
+    const targetThrottle = 50 - shapeAxis(left.y) * MAX_THROTTLE_OFFSET;
+    const targetYaw = -shapeAxis(left.x) * MAX_YAW;
+    const targetPitch = -shapeAxis(right.y) * MAX_PITCH;
+    const targetRoll = shapeAxis(right.x) * MAX_ROLL;
+
+    const axisResponse = active ? AXIS_RESPONSE : RELEASE_RESPONSE;
+    const throttleResponse = active ? THROTTLE_RESPONSE : RELEASE_RESPONSE;
+
+    output.throttle = approach(output.throttle, targetThrottle, safeDt, throttleResponse);
+    output.yaw = approach(output.yaw, targetYaw, safeDt, axisResponse);
+    output.pitch = approach(output.pitch, targetPitch, safeDt, axisResponse);
+    output.roll = approach(output.roll, targetRoll, safeDt, axisResponse);
+
+    if (!active && isOutputNeutral()) {
+        output.throttle = 50;
+        output.yaw = 0;
+        output.pitch = 0;
+        output.roll = 0;
+    }
+
+    droneState.throttle = clamp(output.throttle, 0, 100);
+    droneState.yaw = clamp(output.yaw, -1, 1);
+    droneState.pitch = clamp(output.pitch, -1, 1);
+    droneState.roll = clamp(output.roll, -1, 1);
     return true;
 }

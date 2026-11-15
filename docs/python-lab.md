@@ -1,6 +1,6 @@
 # Guia do Professor — Laboratório Python
 
-Este guia acompanha o **AERO-SIM 1.7.1** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
+Este guia acompanha o **AERO-SIM 1.8.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
 
 ## 1. O que os alunos aprendem
 
@@ -94,7 +94,7 @@ Perguntas para a turma:
 - O que muda se usarmos `move_up(100)`?
 - Porque aparece `Height: 0` antes do takeoff?
 
-> **Tablet/telemóvel:** ao executar o script, o simulador passa para ecrã inteiro para se acompanhar o voo. A barra superior permite **Parar** ou voltar ao laboratório; no fim da execução, o editor regressa automaticamente.
+> **Tablet/telemóvel:** ao executar o script, o simulador passa para ecrã inteiro para se acompanhar o voo. A barra superior permite **Parar** ou voltar ao laboratório; no fim da execução, o editor regressa automaticamente. No modo Manual, os joysticks usam o perfil **Suave** por omissão, com resposta progressiva e limites para evitar movimentos bruscos.
 
 ## 5. Missão guiada — Playground Circuit
 

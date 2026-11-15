@@ -16,13 +16,17 @@ export function setControlMode(mode) {
     document.body.classList.toggle('python-lab-open', mode === 'python');
 
     if (mode === 'python') {
-        pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-white shadow flex items-center gap-1.5';
-        manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
+        pythonBtn.className = 'mode-tab mode-tab-active';
+        manualBtn.className = 'mode-tab';
+        pythonBtn.setAttribute('aria-pressed', 'true');
+        manualBtn.setAttribute('aria-pressed', 'false');
         idePanel?.classList.remove('hidden');
     } else {
         stopPythonAutopilot();
-        manualBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow flex items-center gap-1.5';
-        pythonBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5';
+        manualBtn.className = 'mode-tab mode-tab-active';
+        pythonBtn.className = 'mode-tab';
+        manualBtn.setAttribute('aria-pressed', 'true');
+        pythonBtn.setAttribute('aria-pressed', 'false');
         idePanel?.classList.add('hidden');
     }
 

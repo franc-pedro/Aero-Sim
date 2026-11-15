@@ -30,7 +30,7 @@ export const functionForge = {
         pillar: 0x6366f1,
         hazard: 0xf43f5e,
         tower: 0x1e293b,
-        ring: 0x22d3ee,
+        ring: 0x60a5fa,
         decor: 0x334155,
     },
     obstacles: [

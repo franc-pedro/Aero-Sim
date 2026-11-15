@@ -1,5 +1,5 @@
 export default {
-    'app.subtitle': 'Treino de Voo de Quadcopter',
+    'app.subtitle': 'Laboratório de Voo',
     'app.documentTitle': 'AERO-SIM — Simulador de Voo de Quadcopter',
 
     'language.label': 'Idioma',
@@ -33,9 +33,9 @@ export default {
     'mode.manual': 'Manual',
     'mode.python': 'Código Python',
 
-    'theme.daylight': 'Luz do Dia',
-    'theme.sunset': 'Pôr do Sol',
-    'theme.night': 'Operações Noturnas',
+    'theme.label': 'Tema',
+    'theme.daylight': 'Claro',
+    'theme.night': 'Escuro',
 
     'gamepad.none': 'Sem gamepad ligado',
     'gamepad.connected': 'Gamepad ligado',

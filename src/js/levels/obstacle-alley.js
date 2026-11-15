@@ -14,7 +14,7 @@ export const obstacleAlley = {
     id: 'obstacle-alley',
     difficulty: 'intermediate',
     order: 3,
-    defaultTheme: 'sunset',
+    defaultTheme: 'daylight',
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
     ground: { size: 80, divisions: 32 },
@@ -24,7 +24,7 @@ export const obstacleAlley = {
         pillar: 0xf97316,
         hazard: 0xf43f5e,
         tower: 0x334155,
-        ring: 0xfbbf24,
+        ring: 0xf59e0b,
         decor: 0x475569,
     },
     obstacles: [

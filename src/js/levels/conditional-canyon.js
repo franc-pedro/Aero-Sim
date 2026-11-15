@@ -14,7 +14,7 @@ export const conditionalCanyon = {
     id: 'conditional-canyon',
     difficulty: 'intermediate',
     order: 5,
-    defaultTheme: 'sunset',
+    defaultTheme: 'daylight',
     spawn,
     bounds: { halfSize: 40, ceiling: 35 },
     ground: { size: 100, divisions: 40 },
@@ -24,7 +24,7 @@ export const conditionalCanyon = {
         pillar: 0xf59e0b,
         hazard: 0xf43f5e,
         tower: 0x7c2d12,
-        ring: 0x22d3ee,
+        ring: 0x38bdf8,
         decor: 0x92400e,
     },
     obstacles: [

@@ -24,10 +24,10 @@
                     <i class="fa-solid fa-helicopter text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg tracking-wide">DRONE-SIM</h1>
+                    <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
                     <p class="text-xs theme-muted-text">
                         <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.7.1</span> ·
+                        <span>v1.8.0</span> ·
                         <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
                     </p>
                 </div>
@@ -45,21 +45,25 @@
 
                 <!-- Flight Mode Switcher: Manual vs Python Code Autopilot -->
                 <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
-                    <button id="mode-btn-manual" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow flex items-center gap-1.5">
+                    <button id="mode-btn-manual" class="mode-tab mode-tab-active" aria-pressed="true">
                         <i class="fa-solid fa-gamepad"></i>
                         <span data-i18n="mode.manual">Manual</span>
                     </button>
-                    <button id="mode-btn-python" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80 flex items-center gap-1.5">
+                    <button id="mode-btn-python" class="mode-tab" aria-pressed="false">
                         <i class="fa-brands fa-python"></i>
                         <span data-i18n="mode.python">Python Code</span>
                     </button>
                 </div>
 
-                <div class="lab-hide mobile-hide glass-panel px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
-                    <i class="fa-solid fa-palette text-xs theme-accent-text mr-1"></i>
-                    <button id="theme-btn-daylight" data-i18n="theme.daylight" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow">Daylight</button>
-                    <button id="theme-btn-sunset" data-i18n="theme.sunset" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80">Sunset</button>
-                    <button id="theme-btn-night" data-i18n="theme.night" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80">Night Ops</button>
+                <div class="lab-hide mobile-hide glass-panel theme-switch px-2 py-1.5 rounded-xl flex items-center gap-1 shadow-lg" role="group" aria-label="Theme" data-i18n-aria-label="theme.label">
+                    <button id="theme-btn-daylight" class="theme-tab theme-tab-active" aria-pressed="true">
+                        <i class="fa-solid fa-sun"></i>
+                        <span data-i18n="theme.daylight">Light</span>
+                    </button>
+                    <button id="theme-btn-night" class="theme-tab" aria-pressed="false">
+                        <i class="fa-solid fa-moon"></i>
+                        <span data-i18n="theme.night">Dark</span>
+                    </button>
                 </div>
 
                 <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
@@ -116,7 +120,7 @@
             </div>
 
             <!-- Center Status / Live Stick Input Debugger -->
-            <div class="lab-hide mobile-hide glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
+            <div class="gamepad-calibration lab-hide mobile-hide glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
                 <div class="flex items-center justify-between w-full px-1">
                     <span class="text-[11px] font-bold uppercase tracking-wider theme-accent-text flex items-center gap-1.5">
                         <i class="fa-solid fa-crosshairs"></i>

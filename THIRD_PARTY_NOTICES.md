@@ -52,3 +52,9 @@ Este projeto inclui bibliotecas de terceiros distribuídas localmente no build.
 ## Nota
 
 O Pyodide é distribuído localmente em `public/pyodide/` (gerado por `npm run setup:pyodide`). Não são usados CDNs em runtime.
+
+## Nunito Variable 5.3.0
+
+- Licença: SIL Open Font License 1.1
+- Website: https://fonts.google.com/specimen/Nunito
+- Código-fonte: https://github.com/googlefonts/nunito
