@@ -61,5 +61,28 @@ export const pythonPlayground = {
             'python.mission.python-playground.hint.4',
         ],
         landingPad: missionPad,
+        lesson: {
+            introKey: 'python.lesson.python-playground.intro',
+            objectiveKeys: [
+                'python.lesson.python-playground.objective.1',
+                'python.lesson.python-playground.objective.2',
+            ],
+            syntaxKey: 'python.lesson.python-playground.syntax',
+            syntaxCaptionKey: 'python.lesson.python-playground.syntaxCaption',
+            vocabularyKeys: [
+                'python.lesson.python-playground.vocab.1',
+                'python.lesson.python-playground.vocab.2',
+            ],
+            quiz: {
+                questionKey: 'python.lesson.python-playground.quiz.question',
+                optionKeys: [
+                    'python.lesson.python-playground.quiz.option.1',
+                    'python.lesson.python-playground.quiz.option.2',
+                    'python.lesson.python-playground.quiz.option.3',
+                ],
+                answerIndex: 0,
+                explanationKey: 'python.lesson.python-playground.quiz.explanation',
+            },
+        },
     },
 };

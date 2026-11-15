@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { controlState, droneState } from '../core/state.js';
 import { pollGamepad } from '../controls/gamepad.js';
 import { handleKeyboard } from '../controls/keyboard.js';
+import { applyTouchControls } from '../controls/touch.js';
 import { runPythonStep } from '../python/autopilot.js';
 import { abortTelloCommand, TelloCommandError } from '../python/commands.js';
 import { detectCollision, resolveCollision } from './collision.js';
@@ -56,9 +57,10 @@ function wrapAngle(angle) {
 // Sample manual controls once per render frame. Python mode is stepped inside
 // the fixed simulation step so scripts receive a stable dt.
 export function sampleInput() {
-    if (controlState.mode === 'python' || droneState.flight.status !== 'flying') return;
+    if (controlState.mode !== 'manual' || droneState.flight.status !== 'flying') return;
     pollGamepad();
     handleKeyboard();
+    applyTouchControls();
 }
 
 // Called by the loop before each fixed step.

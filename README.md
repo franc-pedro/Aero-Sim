@@ -1,8 +1,16 @@
 # AERO-SIM
 
-**Versão atual: 1.6.1**
+**Versão atual: 1.7.0**
 
 Simulador de voo de um quadcopter, agora servido como aplicação Vite com HTML, CSS e JavaScript separados.
+
+## Novidades 1.7.0
+
+- Três missões Python novas: **Variable Valley**, **Conditional Canyon** e **Sensor Summit**.
+- Lições, quizzes e progresso local em todas as missões Python.
+- Dicas progressivas e seletor de níveis agrupado por missões e voo livre.
+- Controlos de voo por toque e vista de voo mobile durante scripts Python.
+- Presets de missão passam a trocar o cenário, objetivo, dicas e lição em conjunto.
 
 ## Requisitos
 
@@ -31,9 +39,10 @@ src/js/core/            estado, sessão, loop de passo fixo e toast
 src/js/i18n/            catálogos EN/PT-PT, incluindo níveis e missões
 src/js/levels/          registo, RNG e definições dos níveis
 src/js/scene/           level builder e modelo do quadcopter
-src/js/controls/        teclado e gamepad
+src/js/controls/        teclado, gamepad e controlos de toque
 src/js/ui/              tema, HUD, níveis, idioma, modos e Python Lab
 src/js/python/          runtime Pyodide, worker, comandos, missão, erros, presets e autopiloto
+src/js/python/progress.js      progresso local das missões, dicas e quizzes
 src/js/python/api-reference.js  metadata da API Tello (autocomplete + referência)
 src/js/python/mission.js        progresso e critérios de sucesso das missões
 src/js/python/errors.js         tradução pedagógica de erros comuns
@@ -65,19 +74,19 @@ O modo **Python Code** abre um laboratório em split-screen: a simulação fica 
 O laboratório já inclui:
 
 - **CodeMirror 6** com highlighting, números de linha, autocomplete, pesquisa, indentação com Tab e `Ctrl+Enter` para executar.
-- **Quatro missões guiadas** com progressão pedagógica:
-  - **Python Playground** — sequência;
-  - **Loop Lagoon** — ciclos `for`;
-  - **Function Forge** — funções;
-  - **Obstacle Alley** — obstáculos e direção.
-- **Missão guiada** com objetivo, progresso dos portais, dicas, etiqueta do conceito e critério de aterragem.
-- **Consola** com `print`, avisos e erros; botão para limpar.
+- **Estado de gravação** visível no rodapé (`A guardar…`, `Guardado`, `Ainda não guardado`).
+- **Painel expansível** e **consola colapsável**, com preferências guardadas localmente.
+- **Missão guiada** com objetivo, progresso dos portais, dicas progressivas, etiqueta do conceito e critério de aterragem.
+- **Lição integrada** por missão: objetivos, explicação, sintaxe, vocabulário e uma verificação rápida com feedback.
+- **Progresso local** por missão, com dicas usadas, resultado do quiz, vistos no seletor de níveis e opção de reiniciar.
+- **Consola** com `print`, avisos e erros; botão para limpar; expande automaticamente em caso de erro.
 - **Referência da API Tello** bilingue: clicar num método insere o exemplo no editor.
-- **Diagnóstico de erros**: a linha com erro fica marcada no editor, o traceback aparece na consola e surge uma dica pedagógica traduzida.
+- **Diagnóstico de erros**: a linha com erro fica marcada no editor, o traceback aparece na consola e surge uma dica pedagógica com o número da linha.
 - **Guardar automaticamente por nível** em `localStorage`; o código é retomado ao reabrir.
 - **Descarregar/abrir `.py`**.
 - **Stop** com aterragem automática e recuperação de loops de CPU.
 - **Layout split-screen** com redimensionamento do canvas e modo mobile.
+- **Voo em ecrã inteiro em tablet/telemóvel**: ao executar um script, o simulador aparece para acompanhar o percurso do drone; uma barra de voo permite parar ou voltar ao editor e, no fim do script, o laboratório regressa automaticamente.
 - **Fecho do laboratório** com o botão X ou com o modo **Manual**.
 
 O nível inicial é o **Python Playground**. Cada nível de missão carrega um exemplo de arranque com `TODO`; o guia pedagógico completo está em [`docs/python-lab.md`](docs/python-lab.md).
@@ -119,6 +128,19 @@ Abrir a aplicação, escolher **Python Code** e premir **Run Script**. Na primei
 
 O laboratório pode ser fechado com o botão **X** ou com o modo **Manual**. Em ecrãs pequenos, o laboratório ocupa o ecrã inteiro.
 
+## Tablet e telemóvel
+
+Em dispositivos com ecrã tátil (`pointer: coarse`) ou com largura até 900 px, o modo Manual passa a mostrar controlos de voo por toque:
+
+- **Joystick esquerdo** — subir/descer (eixo vertical) e rodar (eixo horizontal).
+- **Joystick direito** — avançar/recuar (eixo vertical) e deslocar para os lados (eixo horizontal).
+- **Reset** central para repor o drone no spawn.
+- **HUD compacto** com altitude, velocidade e bateria, atualizado a 12 Hz.
+
+Os joysticks usam Pointer Events com captura por ponteiro, pelo que suportam dois dedos em simultâneo; o estado é limpo ao largar, ao perder o foco, ao mudar de modo ou ao reiniciar o voo. O cabeçalho fica em duas filas nos ecrãs estreitos, os cartões secundários (título, tema, gamepad, calibração e guia de controlos) e o HUD inferior são ocultados, e as margens respeitam `safe-area-inset` em telemóveis com notch. Teclado e gamepad continuam a funcionar em desktop.
+
+Ao abrir o **Python Lab**, os controlos de toque e o HUD inferior são escondidos; em ecrãs pequenos o laboratório ocupa toda a largura. Ao executar um script nesses ecrãs, o simulador passa para ecrã inteiro para se ver o voo, com uma barra para **Parar** ou **voltar ao laboratório**; no fim da execução, o editor regressa automaticamente.
+
 ## Deploy
 
 O projeto usa `base: './'` no Vite, pelo que o conteúdo de `dist/` pode ser servido a partir da raiz ou de uma subpasta. Configura o host estático para servir `dist/index.html` como entrada.
@@ -147,6 +169,9 @@ Níveis incluídos:
 - **Loop Lagoon** — tema Sunset, 4 portais num quadrado de 6 m e missão de ciclos.
 - **Function Forge** — tema Night Ops, 8 portais em duas voltas a altitudes diferentes e missão de funções.
 - **Obstacle Alley** — tema Sunset, 3 portais em zig-zag entre torres e missão de obstáculos.
+- **Variable Valley** — tema Daylight, 3 portais em subida e missão de variáveis.
+- **Conditional Canyon** — tema Sunset, 3 portais entre paredes e missão de condições.
+- **Sensor Summit** — tema Night Ops, 3 portais em subida e missão de ciclos `while` com sensores.
 - **Training Course** — tema Daylight, 30 pilares e 5 portais sobre a grelha.
 - **Ring Gauntlet** — tema Sunset, 8 portais em subida, torres e monólitos decorativos.
 
@@ -180,7 +205,9 @@ export const myLevel = {
 };
 ```
 
-`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. `pythonMission.example` indica a chave do exemplo de arranque em `src/js/python/presets.js` e `pythonMission.focus` escolhe a etiqueta pedagógica (`sequence`, `loops`, `functions` ou `obstacles`). Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência.
+`landingPad` e `missionPad` são apenas visuais; `pythonMission.landingPad` define o alvo de sucesso. `pythonMission.example` indica a chave do exemplo de arranque em `src/js/python/presets.js` e `pythonMission.focus` escolhe a etiqueta pedagógica (`sequence`, `loops`, `functions`, `obstacles`, `variables`, `conditionals`, `sensors`, `debugging` ou `capstone`). Os `decor` são apenas visuais (sem collider); coloca-os fora dos limites jogáveis para servirem de referência.
+
+As missões que incluem `pythonMission.lesson` mostram o botão **Lição** e um quiz; a estrutura segue o padrão `python.lesson.<id>.*`. O progresso é guardado em `aero-sim.python.progress.v1` e não é enviado para nenhum servidor.
 
 Todo o texto de apresentação de um nível — nome, descrição, dificuldade, missão, objetivo e dicas — vive em `src/js/i18n/en.js` e `src/js/i18n/pt-PT.js`. As chaves seguem o padrão:
 
@@ -191,6 +218,7 @@ level.difficulty.<token>
 python.mission.<id>.title
 python.mission.<id>.objective
 python.mission.<id>.hint.<n>
+python.lesson.<id>.*
 ```
 
 Para adicionar um nível: criar o ficheiro em `src/js/levels/`, registá-lo em `src/js/levels/index.js` e acrescentar as chaves correspondentes aos dois catálogos. O comando `npm run check:i18n` valida os dois passos.
@@ -221,13 +249,13 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 5. Embater num pilar e num anel: confirmar o shake, a vinheta, a queda/tombamento e o estado `CRASHED`.
 6. Atravessar o centro de um anel sem tocar na moldura, confirmar o incremento do contador `GATES` e a notificação de percurso completo.
 7. Testar `R` e o botão **Reset Pos** depois de um crash; confirmar que o drone reaparece no spawn do nível atual e que os portais foram limpos.
-8. Trocar entre Python Playground, Loop Lagoon, Function Forge, Obstacle Alley, Training Course e Ring Gauntlet: confirmar spawn, limites, geometria, missão e tema inicial próprios, sem erros.
+8. Trocar entre Python Playground, Loop Lagoon, Function Forge, Obstacle Alley, Variable Valley, Conditional Canyon, Sensor Summit, Training Course e Ring Gauntlet: confirmar spawn, limites, geometria, missão e tema inicial próprios, sem erros.
 9. Alternar Daylight, Sunset e Night Ops em cada nível.
 10. Trocar English ↔ Português (PT): confirmar que header, HUD, níveis, controlos, painel Python, gamepad, toasts e badges mudam sem reload.
 11. Recarregar a página com PT selecionado e confirmar a persistência, `html lang="pt-PT"` e o título do documento traduzido.
 12. Ligar um gamepad e confirmar o estado, os eixos e o invert de pitch.
 13. Abrir **Python Code** e confirmar o layout split-screen, o CodeMirror e o estado “Python ready”.
-14. Confirmar que o nível inicial é **Python Playground** e que a missão mostra `Gates 0/3`, objetivo e botão **Hints**.
+14. Confirmar que o nível inicial é **Python Playground** e que a missão mostra `Gates 0/3`, objetivo, dicas progressivas e botão **Lição**.
 15. Executar o preset **First Flight**: confirmar takeoff, subida, aterragem, consola com `Battery`/`Height` e regresso a “Python ready”.
 16. Testar `Ctrl+Enter` no editor e confirmar que o script arranca.
 17. Testar **Stop** com um script que usa `time.sleep`, confirmar que o drone aterra e que o runtime continua disponível.
@@ -240,10 +268,15 @@ O código Python, comentários dos presets, teclas, unidades e o overlay técnic
 24. Executar a solução de **Loop Lagoon**: confirmar `4/4`, a etiqueta **Loops** e a aterragem na plataforma.
 25. Executar a solução de **Function Forge**: confirmar `8/8`, a etiqueta **Functions** e a aterragem após a segunda volta.
 26. Executar a solução de **Obstacle Alley**: confirmar `3/3`, a etiqueta **Obstacles** e a aterragem na plataforma verde final.
-27. Provocar um crash com `tello.emergency()`: confirmar o estado vermelho da missão, o badge `CRASHED` e que **Reset Pos** repõe `0/x`.
-28. Premir **Reset Pos** e confirmar que o drone volta ao chão; fechar o laboratório com **X** e confirmar o spawn normal e o controlo manual.
-29. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
-30. Executar `npm run check:i18n` e confirmar que os 6 níveis e as 4 missões têm todas as chaves nos dois catálogos.
+27. Executar a solução de **Variable Valley**: confirmar `3/3`, a etiqueta **Variables** e o progresso com as dicas usadas.
+28. Executar a solução de **Conditional Canyon**: confirmar `3/3`, a etiqueta **Conditions** e a aterragem na plataforma.
+29. Executar a solução de **Sensor Summit**: confirmar `3/3`, a etiqueta **Sensors & loops**, o uso de `while`/`get_height()` e a aterragem.
+30. Abrir **Lição** em cada missão Python e confirmar objetivos, sintaxe, vocabulário e quiz; responder corretamente e confirmar o feedback.
+31. Abrir **Progresso**, confirmar os vistos, o resultado dos quizzes e a persistência após reload; testar **Reiniciar progresso**.
+32. Provocar um crash com `tello.emergency()`: confirmar o estado vermelho da missão, o badge `CRASHED` e que **Reset Pos** repõe `0/x`.
+33. Premir **Reset Pos** e confirmar que o drone volta ao chão; fechar o laboratório com **X** e confirmar o spawn normal e o controlo manual.
+34. Confirmar que os assets do Pyodide e do CodeMirror são servidos localmente e que não há pedidos a CDNs.
+35. Executar `npm run check:i18n` e confirmar que os 9 níveis e as 7 missões têm todas as chaves nos dois catálogos.
 
 ## Licenças
 

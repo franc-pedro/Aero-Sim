@@ -58,6 +58,87 @@ for (const level of LEVELS) {
             requireKey(key);
         });
     }
+
+    const lesson = mission.lesson;
+    if (lesson) {
+        if (typeof lesson.introKey !== 'string' || lesson.introKey.length === 0) {
+            errors.push(`[lesson:${level.id}] missing introKey`);
+        } else {
+            requireKey(lesson.introKey);
+        }
+
+        if (!Array.isArray(lesson.objectiveKeys) || lesson.objectiveKeys.length === 0) {
+            errors.push(`[lesson:${level.id}] missing objectiveKeys`);
+        } else {
+            lesson.objectiveKeys.forEach((key, index) => {
+                if (typeof key !== 'string' || key.length === 0) {
+                    errors.push(`[lesson:${level.id}] invalid objective key at index ${index}`);
+                    return;
+                }
+                requireKey(key);
+            });
+        }
+
+        if (typeof lesson.syntaxKey !== 'string' || lesson.syntaxKey.length === 0) {
+            errors.push(`[lesson:${level.id}] missing syntaxKey`);
+        } else {
+            requireKey(lesson.syntaxKey);
+        }
+
+        if (typeof lesson.syntaxCaptionKey !== 'string' || lesson.syntaxCaptionKey.length === 0) {
+            errors.push(`[lesson:${level.id}] missing syntaxCaptionKey`);
+        } else {
+            requireKey(lesson.syntaxCaptionKey);
+        }
+
+        if (!Array.isArray(lesson.vocabularyKeys) || lesson.vocabularyKeys.length === 0) {
+            errors.push(`[lesson:${level.id}] missing vocabularyKeys`);
+        } else {
+            lesson.vocabularyKeys.forEach((key, index) => {
+                if (typeof key !== 'string' || key.length === 0) {
+                    errors.push(`[lesson:${level.id}] invalid vocabulary key at index ${index}`);
+                    return;
+                }
+                requireKey(key);
+            });
+        }
+
+        const quiz = lesson.quiz;
+        if (!quiz) {
+            errors.push(`[lesson:${level.id}] missing quiz`);
+        } else {
+            if (typeof quiz.questionKey !== 'string' || quiz.questionKey.length === 0) {
+                errors.push(`[lesson:${level.id}] missing quiz questionKey`);
+            } else {
+                requireKey(quiz.questionKey);
+            }
+
+            if (!Array.isArray(quiz.optionKeys) || quiz.optionKeys.length < 2) {
+                errors.push(`[lesson:${level.id}] quiz needs at least two optionKeys`);
+            } else {
+                quiz.optionKeys.forEach((key, index) => {
+                    if (typeof key !== 'string' || key.length === 0) {
+                        errors.push(`[lesson:${level.id}] invalid quiz option key at index ${index}`);
+                        return;
+                    }
+                    requireKey(key);
+                });
+                if (
+                    !Number.isInteger(quiz.answerIndex)
+                    || quiz.answerIndex < 0
+                    || quiz.answerIndex >= quiz.optionKeys.length
+                ) {
+                    errors.push(`[lesson:${level.id}] quiz answerIndex is out of range`);
+                }
+            }
+
+            if (typeof quiz.explanationKey !== 'string' || quiz.explanationKey.length === 0) {
+                errors.push(`[lesson:${level.id}] missing quiz explanationKey`);
+            } else {
+                requireKey(quiz.explanationKey);
+            }
+        }
+    }
 }
 
 const enKeys = Object.keys(en);

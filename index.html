@@ -19,15 +19,15 @@
 
         <!-- Top Bar: Title, Theme Switcher & Gamepad Status -->
         <header class="flex flex-wrap justify-between items-center gap-3 w-full">
-            <div class="lab-hide glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 shadow-xl pointer-events-auto">
+            <div class="lab-hide mobile-hide glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 shadow-xl pointer-events-auto">
                 <div class="theme-accent-bg p-2.5 rounded-xl">
                     <i class="fa-solid fa-helicopter text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
+                    <h1 class="font-bold text-lg tracking-wide">DRONE-SIM</h1>
                     <p class="text-xs theme-muted-text">
                         <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.6.1</span> ·
+                        <span>v1.7.0</span> ·
                         <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
                     </p>
                 </div>
@@ -55,7 +55,7 @@
                     </button>
                 </div>
 
-                <div class="lab-hide glass-panel px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
+                <div class="lab-hide mobile-hide glass-panel px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
                     <i class="fa-solid fa-palette text-xs theme-accent-text mr-1"></i>
                     <button id="theme-btn-daylight" data-i18n="theme.daylight" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-white shadow">Daylight</button>
                     <button id="theme-btn-sunset" data-i18n="theme.sunset" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all theme-muted-text hover:opacity-80">Sunset</button>
@@ -70,7 +70,7 @@
                     </select>
                 </div>
 
-                <div id="gamepad-status-badge" class="lab-hide glass-panel px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-xl transition-all">
+                <div id="gamepad-status-badge" class="lab-hide mobile-hide glass-panel px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-xl transition-all">
                     <span id="gamepad-dot" class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
                     <span id="gamepad-text" data-i18n="gamepad.none" class="text-xs font-semibold tracking-wider uppercase theme-muted-text">No Gamepad Connected</span>
                 </div>
@@ -116,7 +116,7 @@
             </div>
 
             <!-- Center Status / Live Stick Input Debugger -->
-            <div class="lab-hide glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
+            <div class="lab-hide mobile-hide glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
                 <div class="flex items-center justify-between w-full px-1">
                     <span class="text-[11px] font-bold uppercase tracking-wider theme-accent-text flex items-center gap-1.5">
                         <i class="fa-solid fa-crosshairs"></i>
@@ -190,7 +190,7 @@
             </div>
 
             <!-- Controls Help Card -->
-            <div class="lab-hide glass-panel p-5 rounded-2xl shadow-xl space-y-2">
+            <div class="lab-hide mobile-hide glass-panel p-5 rounded-2xl shadow-xl space-y-2">
                 <h2 class="text-xs font-bold uppercase tracking-wider theme-accent-text flex items-center gap-2">
                     <i class="fa-solid fa-gamepad"></i>
                     <span data-i18n="controls.title">Controls Guide (Mode 2)</span>
@@ -219,6 +219,33 @@
 
     </div>
 
+    <!-- Touch flight controls (manual mode, touch devices / small screens) -->
+    <div id="touch-controls" class="touch-controls" aria-label="Touch flight controls" data-i18n-aria-label="touch.aria">
+        <div class="touch-hud" role="group" aria-label="Flight telemetry" data-i18n-aria-label="touch.hudAria">
+            <span><span data-i18n="telemetry.altitude">Altitude</span> <strong id="touch-alt">0.0 m</strong></span>
+            <span><span data-i18n="telemetry.speed">Speed</span> <strong id="touch-speed">0.0 m/s</strong></span>
+            <span><span data-i18n="telemetry.battery">Battery</span> <strong id="touch-battery">100%</strong></span>
+        </div>
+        <div class="touch-sticks">
+            <div id="touch-stick-left" class="touch-stick">
+                <div class="touch-stick-base" role="group" aria-label="Climb and turn" data-i18n-aria-label="touch.leftStickAria">
+                    <div class="touch-stick-knob"></div>
+                </div>
+                <span class="touch-stick-label" data-i18n="touch.leftStick">Climb / Turn</span>
+            </div>
+            <button id="btn-touch-reset" class="touch-reset" aria-label="Reset flight" data-i18n-aria-label="common.reset">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span data-i18n="common.reset">Reset</span>
+            </button>
+            <div id="touch-stick-right" class="touch-stick">
+                <div class="touch-stick-base" role="group" aria-label="Forward and side" data-i18n-aria-label="touch.rightStickAria">
+                    <div class="touch-stick-knob"></div>
+                </div>
+                <span class="touch-stick-label" data-i18n="touch.rightStick">Forward / Side</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Python Lab: split-screen editor -->
     <aside id="python-ide-panel" class="python-lab-panel glass-panel" aria-label="Python Lab" data-i18n-aria-label="python.title">
         <div class="python-lab-header">
@@ -228,20 +255,26 @@
                 </div>
                 <div class="min-w-0">
                     <h2 data-i18n="python.title" class="text-xs font-bold uppercase tracking-wider truncate">Python Lab</h2>
-                    <p id="pyodide-status" class="text-[10px] theme-muted-text truncate">Python runtime loads on first run</p>
+                    <p id="pyodide-status" role="status" aria-live="polite" class="text-[10px] theme-muted-text truncate">Python runtime loads on first run</p>
                 </div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-                <select id="python-preset-select" aria-label="Python example" data-i18n-aria-label="python.presetLabel" class="sub-card theme-accent-text font-mono text-[11px] font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer max-w-[150px]">
+                <select id="python-preset-select" aria-label="Python example" data-i18n-aria-label="python.presetLabel" class="sub-card theme-accent-text font-mono text-[11px] font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer max-w-[220px]">
                     <option value="playground" data-i18n="python.preset.playground">Example: Mission</option>
                     <option value="loop" data-i18n="python.preset.loop">Example: Loops</option>
                     <option value="functions" data-i18n="python.preset.functions">Example: Functions</option>
+                    <option value="variables" data-i18n="python.preset.variables">Example: Variables</option>
+                    <option value="conditionals" data-i18n="python.preset.conditionals">Example: Conditions</option>
+                    <option value="summit" data-i18n="python.preset.summit">Mission: Sensor Summit</option>
                     <option value="obstacles" data-i18n="python.preset.obstacles">Example: Obstacles</option>
                     <option value="square" data-i18n="python.preset.square">Example: Square</option>
                     <option value="hello" data-i18n="python.preset.hello">Example: First Flight</option>
                     <option value="sensors" data-i18n="python.preset.sensors">Example: Sensors</option>
                     <option value="custom" data-i18n="python.preset.custom">Custom code</option>
                 </select>
+                <button id="btn-expand-python-lab" class="python-lab-expand-btn sub-card rounded-lg w-8 h-8 items-center justify-center theme-muted-text hover:opacity-80 transition-all" aria-label="Expand Python Lab" data-i18n-aria-label="python.expand" data-i18n-title="python.expand" aria-pressed="false">
+                    <i class="fa-solid fa-maximize"></i>
+                </button>
                 <button id="btn-close-python-lab" aria-label="Back to manual flight" data-i18n-aria-label="python.close" data-i18n-title="python.close" class="sub-card rounded-lg w-8 h-8 flex items-center justify-center theme-muted-text hover:opacity-80 transition-all">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -261,7 +294,8 @@
                     <i class="fa-solid fa-lightbulb mr-1"></i>
                     <span data-i18n="python.missionHints">Hints</span>
                 </button>
-                <span id="python-mission-status" class="python-mission-status hidden"></span>
+                <button id="btn-python-mission-hints-all" class="python-mission-hints-all hidden" data-i18n="python.hintsShowAll">Show all</button>
+                <span id="python-mission-status" role="status" class="python-mission-status hidden"></span>
             </div>
             <ul id="python-mission-hints" class="python-mission-hints hidden"></ul>
         </section>
@@ -284,6 +318,15 @@
                 <span data-i18n="python.resetPos">Reset Pos</span>
             </button>
             <span class="python-lab-toolbar-spacer"></span>
+            <button id="btn-python-lesson" class="hidden px-2.5 py-1.5 rounded-xl sub-card text-xs font-semibold hover:opacity-80 transition-all" aria-expanded="false">
+                <i class="fa-solid fa-graduation-cap mr-1"></i>
+                <span data-i18n="python.lesson">Lesson</span>
+            </button>
+            <button id="btn-python-progress" class="px-2.5 py-1.5 rounded-xl sub-card text-xs font-semibold hover:opacity-80 transition-all" aria-expanded="false">
+                <i class="fa-solid fa-chart-simple mr-1"></i>
+                <span data-i18n="python.progress">Progress</span>
+                <span id="python-progress-count" class="python-progress-count">0/0</span>
+            </button>
             <button id="btn-python-reference" class="px-2.5 py-1.5 rounded-xl sub-card text-xs font-semibold hover:opacity-80 transition-all" aria-expanded="false">
                 <i class="fa-solid fa-book-open mr-1"></i>
                 <span data-i18n="python.reference">API</span>
@@ -299,11 +342,20 @@
 
         <div class="python-lab-console-header">
             <span class="text-[10px] font-bold uppercase tracking-wider theme-muted-text" data-i18n="python.consoleTitle">Console</span>
-            <button id="btn-clear-python-console" class="text-[10px] font-semibold theme-muted-text hover:opacity-80 transition-all" data-i18n="python.consoleClear">Clear</button>
+            <div class="flex items-center gap-2">
+                <button id="btn-clear-python-console" class="text-[10px] font-semibold theme-muted-text hover:opacity-80 transition-all" data-i18n="python.consoleClear">Clear</button>
+                <button id="btn-toggle-python-console" class="sub-card rounded-md w-6 h-6 flex items-center justify-center theme-muted-text hover:opacity-80 transition-all" aria-expanded="true" aria-label="Collapse console" data-i18n-aria-label="python.consoleCollapse" data-i18n-title="python.consoleCollapse">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
         <div id="python-console" class="python-console-body" aria-live="polite">Python loads locally on the first run. Manual flight remains available.</div>
 
-        <div class="python-lab-footer" data-i18n="python.footer">Ctrl+Enter runs the script · Code saved locally</div>
+        <div class="python-lab-footer">
+            <span id="python-save-status" class="python-save-status" role="status" aria-live="polite" data-state="local"></span>
+            <span class="python-footer-sep" aria-hidden="true">·</span>
+            <span data-i18n="python.footer">Ctrl+Enter runs the script</span>
+        </div>
 
         <div id="python-reference-panel" class="python-lab-reference hidden" role="dialog" aria-modal="true" aria-labelledby="python-reference-title">
             <div class="flex items-center justify-between gap-2 border-b border-slate-400/25 pb-2">
@@ -315,7 +367,77 @@
             <p data-i18n="python.referenceHint" class="text-[11px] theme-muted-text py-2">Click a method to insert its example into the editor.</p>
             <div id="python-reference-content"></div>
         </div>
+
+        <div id="python-lesson-panel" class="python-lab-reference hidden" role="dialog" aria-modal="true" aria-labelledby="python-lesson-title">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-400/25 pb-2">
+                <div class="min-w-0">
+                    <span id="python-lesson-focus" class="python-lesson-focus"></span>
+                    <h3 id="python-lesson-title" data-i18n="python.lesson" class="text-xs font-bold uppercase tracking-wider">Lesson</h3>
+                </div>
+                <button id="btn-close-python-lesson" class="sub-card rounded-lg w-8 h-8 flex items-center justify-center theme-muted-text hover:opacity-80 transition-all" aria-label="Close lesson" data-i18n-aria-label="python.lessonClose" data-i18n-title="python.lessonClose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p id="python-lesson-intro" class="python-lesson-intro"></p>
+
+            <section class="python-lesson-section">
+                <h4 data-i18n="python.lessonObjectives" class="python-lesson-section-title">Objectives</h4>
+                <ul id="python-lesson-objectives" class="python-lesson-list"></ul>
+            </section>
+
+            <section class="python-lesson-section">
+                <h4 data-i18n="python.lessonSyntax" class="python-lesson-section-title">Syntax</h4>
+                <pre id="python-lesson-syntax" class="python-lesson-syntax"></pre>
+                <p id="python-lesson-syntax-caption" class="python-lesson-caption"></p>
+            </section>
+
+            <section class="python-lesson-section">
+                <h4 data-i18n="python.lessonVocabulary" class="python-lesson-section-title">Key words</h4>
+                <ul id="python-lesson-vocabulary" class="python-lesson-list"></ul>
+            </section>
+
+            <section id="python-lesson-quiz" class="python-lesson-quiz">
+                <h4 data-i18n="python.lessonQuiz" class="python-lesson-section-title">Quick check</h4>
+                <p id="python-lesson-quiz-question" class="python-lesson-quiz-question"></p>
+                <div id="python-lesson-quiz-options" class="python-quiz-options" role="group" aria-label="Quick check answers" data-i18n-aria-label="python.lessonQuizOptions"></div>
+                <p id="python-lesson-quiz-feedback" class="python-quiz-feedback" role="status"></p>
+            </section>
+        </div>
+
+        <div id="python-progress-panel" class="python-lab-reference hidden" role="dialog" aria-modal="true" aria-labelledby="python-progress-title">
+            <div class="flex items-center justify-between gap-2 border-b border-slate-400/25 pb-2">
+                <h3 id="python-progress-title" data-i18n="python.progressTitle" class="text-xs font-bold uppercase tracking-wider">Lab progress</h3>
+                <button id="btn-close-python-progress" class="sub-card rounded-lg w-8 h-8 flex items-center justify-center theme-muted-text hover:opacity-80 transition-all" aria-label="Close progress" data-i18n-aria-label="python.progressClose" data-i18n-title="python.progressClose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p id="python-progress-summary" class="python-progress-summary"></p>
+            <p data-i18n="python.progressLocal" class="python-progress-local">Progress is stored in this browser only.</p>
+            <div id="python-progress-list" class="python-progress-list"></div>
+            <button id="btn-reset-python-progress" class="python-progress-reset">
+                <i class="fa-solid fa-rotate-left mr-1"></i>
+                <span data-i18n="python.progressReset">Reset progress</span>
+            </button>
+        </div>
     </aside>
+
+    <!-- Small-screen flight view while a Python script is running -->
+    <div id="python-watch-bar" class="python-watch-bar glass-panel" role="region" aria-label="Script flight view" data-i18n-aria-label="python.watchAria">
+        <span class="python-watch-info" role="status">
+            <i class="fa-solid fa-plane-up"></i>
+            <span data-i18n="python.watching">Watching flight</span>
+        </span>
+        <div class="python-watch-actions">
+            <button id="btn-watch-stop" class="python-watch-btn python-watch-stop" aria-label="Stop script" data-i18n-aria-label="python.stop">
+                <i class="fa-solid fa-stop"></i>
+                <span data-i18n="python.stop">Stop</span>
+            </button>
+            <button id="btn-watch-back" class="python-watch-btn" aria-label="Back to Python Lab" data-i18n-aria-label="python.backToLab">
+                <i class="fa-solid fa-code"></i>
+                <span data-i18n="python.backToLab">Back to Lab</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Performance Debug Overlay (toggle with F3) -->
     <pre id="debug-stats" class="hidden fixed top-24 right-6 z-50 glass-panel px-3 py-2 rounded-xl text-[10px] font-mono leading-relaxed pointer-events-none whitespace-pre"></pre>

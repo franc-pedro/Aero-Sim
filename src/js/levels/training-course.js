@@ -50,7 +50,7 @@ function generateObstacles() {
 export const trainingCourse = {
     id: 'training-course',
     difficulty: 'beginner',
-    order: 4,
+    order: 100,
     defaultTheme: 'daylight',
     spawn: { x: 0, y: 1.5, z: 0, yaw: 0 },
     bounds: { halfSize: 180, ceiling: 150 },

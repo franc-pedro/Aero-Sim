@@ -37,6 +37,74 @@ fly_square()
 
 tello.land()
 tello.end()`,
+    variables: `from djitellopy import Tello
+
+# Mission: use variables for the heights and distances.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.set_speed(100)
+
+altitude = 300
+step = 100
+distance = 400
+
+# TODO: use the variables in move_up() and move_forward().
+# The route climbs 300, moves 400, climbs 100, moves 400,
+# climbs 100, moves 400, then moves 400 to the pad.
+# tello.move_up(altitude)
+# tello.move_forward(distance)
+
+tello.land()
+tello.end()`,
+    conditionals: `from djitellopy import Tello
+
+# Mission: use conditions to check the height before each gate.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.set_speed(100)
+
+target = 400
+
+if tello.get_height() < target:
+    tello.move_up(target - tello.get_height())
+
+tello.move_forward(400)
+
+# TODO: check the height before the next two gates.
+# Update target to 500 and 600, climb only when needed,
+# then move forward 400 after each check.
+# After the third gate, move forward 400 to the pad.
+
+tello.land()
+tello.end()`,
+    summit: `from djitellopy import Tello
+import time
+
+# Mission: climb to each gate with a while loop and the height sensor.
+tello = Tello()
+tello.connect()
+tello.takeoff()
+tello.set_speed(100)
+
+target = 400
+
+while tello.get_height() < target:
+    tello.move_up(50)
+    time.sleep(0.1)
+
+# The two forward moves cross the first gate and clear its ring
+# before the next climb.
+tello.move_forward(300)
+tello.move_forward(300)
+
+# TODO: repeat the same pattern for target 700 and target 1000.
+# Move forward 400 after each of the next two gates.
+# After the third gate, move forward 200 to the pad.
+
+tello.land()
+tello.end()`,
     obstacles: `from djitellopy import Tello
 
 # Mission: follow the zig-zag between the towers.

@@ -55,5 +55,28 @@ export const loopLagoon = {
             'python.mission.loop-lagoon.hint.4',
         ],
         landingPad: { x: 0, z: 0, radius: 3 },
+        lesson: {
+            introKey: 'python.lesson.loop-lagoon.intro',
+            objectiveKeys: [
+                'python.lesson.loop-lagoon.objective.1',
+                'python.lesson.loop-lagoon.objective.2',
+            ],
+            syntaxKey: 'python.lesson.loop-lagoon.syntax',
+            syntaxCaptionKey: 'python.lesson.loop-lagoon.syntaxCaption',
+            vocabularyKeys: [
+                'python.lesson.loop-lagoon.vocab.1',
+                'python.lesson.loop-lagoon.vocab.2',
+            ],
+            quiz: {
+                questionKey: 'python.lesson.loop-lagoon.quiz.question',
+                optionKeys: [
+                    'python.lesson.loop-lagoon.quiz.option.1',
+                    'python.lesson.loop-lagoon.quiz.option.2',
+                    'python.lesson.loop-lagoon.quiz.option.3',
+                ],
+                answerIndex: 0,
+                explanationKey: 'python.lesson.loop-lagoon.quiz.explanation',
+            },
+        },
     },
 };

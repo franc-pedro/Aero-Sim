@@ -3,6 +3,7 @@ import { showToast } from '../core/toast.js';
 import { t } from '../i18n/index.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { isTelloFlightActive } from './commands.js';
+import { recordMissionComplete } from './progress.js';
 
 let levelDef = null;
 let missionDef = null;
@@ -18,6 +19,7 @@ function createState() {
         landed: false,
         complete: false,
         failed: false,
+        hintsRevealed: 0,
     };
 }
 
@@ -40,11 +42,15 @@ function isOnPad() {
 
 function buildView() {
     const focus = missionDef?.focus || null;
+    const hints = (missionDef?.hintKeys || []).map((key) => t(key));
     return {
         visible: Boolean(missionDef),
         title: missionDef?.titleKey ? t(missionDef.titleKey) : '',
         objective: missionDef?.objectiveKey ? t(missionDef.objectiveKey) : '',
-        hints: (missionDef?.hintKeys || []).map((key) => t(key)),
+        hints,
+        hintsRevealed: Math.min(state.hintsRevealed, hints.length),
+        hintsTotal: hints.length,
+        hasLesson: Boolean(missionDef?.lesson),
         focus,
         focusLabel: focus ? t(`python.focus.${focus}`) : '',
         gatesPassed: state.gatesPassed,
@@ -85,6 +91,22 @@ export function resetMission() {
 
 export function refreshMissionUI() {
     lastSignature = '';
+    emit(true);
+}
+
+export function revealNextMissionHint() {
+    const total = (missionDef?.hintKeys || []).length;
+    if (!total || state.complete || state.hintsRevealed >= total) return;
+
+    state.hintsRevealed += 1;
+    emit(true);
+}
+
+export function revealAllMissionHints() {
+    const total = (missionDef?.hintKeys || []).length;
+    if (!total || state.complete || state.hintsRevealed >= total) return;
+
+    state.hintsRevealed = total;
     emit(true);
 }
 
@@ -129,6 +151,11 @@ export function updateMission() {
     ) {
         state.complete = true;
         changed = true;
+        recordMissionComplete({
+            levelId: levelDef?.id,
+            concept: missionDef?.focus || null,
+            hintsUsed: state.hintsRevealed,
+        });
         showToast('toast.pythonMissionComplete', 'success');
     }
 

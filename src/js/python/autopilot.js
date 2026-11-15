@@ -5,11 +5,15 @@ import { refreshFlightStatus } from '../ui/flight-status.js';
 import {
     clearPythonDiagnostic,
     ensurePythonLab,
+    expandPythonConsole,
     getPythonCode,
+    hidePythonFlightView,
     refreshPythonLab,
+    saveCurrentCode,
     setPythonCode,
     setPythonDiagnostic,
     setPythonMission,
+    showPythonFlightView,
 } from '../ui/python-lab.js';
 import {
     abortTelloCommand,
@@ -70,6 +74,8 @@ export function clearPythonConsole() {
 function appendConsole(text, { error = false } = {}) {
     const consoleEl = getConsole();
     if (!consoleEl || !text) return;
+
+    if (error) expandPythonConsole();
 
     if (consoleShowsDefaultMessage) {
         consoleEl.textContent = '';
@@ -163,6 +169,7 @@ function failRuntime(message, { toast = false } = {}) {
     }
     cleanupWorker();
     setRuntimeStatus('error');
+    hidePythonFlightView();
     appendConsole(message, { error: true });
     if (toast) showToast('toast.pythonRuntimeError', 'warning');
 }
@@ -262,6 +269,7 @@ function handleWorkerMessage(message) {
                 hardStopTimer = null;
             }
             controlState.pythonRunning = false;
+            hidePythonFlightView();
             refreshFlightStatus();
             if (message.status === 'stopped') {
                 appendConsole(t('python.consoleStopped'));
@@ -273,7 +281,9 @@ function handleWorkerMessage(message) {
                 } else {
                     clearPythonDiagnostic();
                 }
-                appendConsole(`${t('python.hintPrefix')} ${info.hint}`);
+                appendConsole(info.line
+                    ? t('python.hintLine', { line: info.line, hint: info.hint })
+                    : `${t('python.hintPrefix')} ${info.hint}`);
             } else {
                 clearPythonDiagnostic();
             }
@@ -391,6 +401,8 @@ export async function startPythonAutopilot() {
         return;
     }
 
+    saveCurrentCode();
+
     if (generation !== startGeneration || controlState.mode !== 'python') {
         starting = false;
         setRunButtonState();
@@ -418,12 +430,14 @@ export async function startPythonAutopilot() {
     controlState.pythonRunning = true;
     setRuntimeStatus('running');
     refreshFlightStatus();
+    showPythonFlightView();
     worker.postMessage({ type: 'run', code, baseURL: new URL('pyodide/', document.baseURI).href });
     starting = false;
     setRunButtonState();
 }
 
 export function stopPythonAutopilot() {
+    hidePythonFlightView();
     startGeneration += 1;
     starting = false;
 

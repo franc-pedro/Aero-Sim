@@ -1,16 +1,31 @@
+import { t } from '../i18n/index.js';
+import { isLevelComplete, subscribeProgress } from '../python/progress.js';
 import { getLevelText, listLevels } from '../levels/index.js';
+
+function createOption(level) {
+    const text = getLevelText(level);
+    const option = document.createElement('option');
+    option.value = level.id;
+    option.textContent = `${text.name} — ${text.difficulty}${isLevelComplete(level.id) ? ' ✓' : ''}`;
+    return option;
+}
+
+function appendGroup(select, levels, labelKey) {
+    if (!levels.length) return;
+
+    const group = document.createElement('optgroup');
+    group.label = t(labelKey);
+    levels.forEach((level) => group.appendChild(createOption(level)));
+    select.appendChild(group);
+}
 
 function populateLevelOptions(select) {
     const current = select.value;
 
     select.innerHTML = '';
-    listLevels().forEach((level) => {
-        const text = getLevelText(level);
-        const option = document.createElement('option');
-        option.value = level.id;
-        option.textContent = `${text.name} — ${text.difficulty}`;
-        select.appendChild(option);
-    });
+    const levels = listLevels();
+    appendGroup(select, levels.filter((level) => level.pythonMission), 'level.group.python');
+    appendGroup(select, levels.filter((level) => !level.pythonMission), 'level.group.manual');
 
     if (current) select.value = current;
 }
@@ -22,6 +37,10 @@ export function initLevelUI({ onSelect }) {
     populateLevelOptions(select);
     select.addEventListener('change', () => {
         onSelect(select.value);
+    });
+
+    subscribeProgress(() => {
+        populateLevelOptions(select);
     });
 }
 

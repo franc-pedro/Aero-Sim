@@ -35,7 +35,7 @@ function buildRings() {
 export const ringGauntlet = {
     id: 'ring-gauntlet',
     difficulty: 'intermediate',
-    order: 5,
+    order: 101,
     defaultTheme: 'sunset',
     spawn,
     bounds: { halfSize: 200, ceiling: 150 },

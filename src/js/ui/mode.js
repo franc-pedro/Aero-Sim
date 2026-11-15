@@ -1,8 +1,13 @@
 import { controlState } from '../core/state.js';
+import { resetTouchControls } from '../controls/touch.js';
 import { stopPythonAutopilot } from '../python/autopilot.js';
 import { refreshFlightStatus } from './flight-status.js';
+import { closePythonPanels, hidePythonFlightView } from './python-lab.js';
 
 export function setControlMode(mode) {
+    resetTouchControls();
+    hidePythonFlightView();
+    closePythonPanels();
     controlState.mode = mode;
     const manualBtn = document.getElementById('mode-btn-manual');
     const pythonBtn = document.getElementById('mode-btn-python');

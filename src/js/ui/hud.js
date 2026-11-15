@@ -91,12 +91,19 @@ export function updateHUD(dt) {
     if (updateTelemetry) {
         telemetryAccumulator = 0;
 
-        setText('telemetry-alt', `${formatNumber(droneState.renderPos.y, 1)} m`);
-        setText('telemetry-speed', `${formatNumber(droneState.vel.length(), 1)} m/s`);
+        const altitudeText = `${formatNumber(droneState.renderPos.y, 1)} m`;
+        const speedText = `${formatNumber(droneState.vel.length(), 1)} m/s`;
+        const batVal = Math.round(droneState.battery);
+        const batteryText = `${batVal}%`;
+
+        setText('telemetry-alt', altitudeText);
+        setText('telemetry-speed', speedText);
         setText('telemetry-throttle', `${Math.round(droneState.throttle)}%`);
 
-        const batVal = Math.round(droneState.battery);
-        setText('telemetry-battery', `${batVal}%`);
+        setText('telemetry-battery', batteryText);
+        setText('touch-alt', altitudeText);
+        setText('touch-speed', speedText);
+        setText('touch-battery', batteryText);
 
         const objectives = droneState.objectives;
         setText(

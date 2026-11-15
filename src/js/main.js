@@ -11,8 +11,9 @@ import { droneState } from './core/state.js';
 import { refreshToast } from './core/toast.js';
 import { initGamepad, refreshGamepadUI } from './controls/gamepad.js';
 import { initKeyboard } from './controls/keyboard.js';
+import { initTouchControls, resetTouchControls } from './controls/touch.js';
 import { initI18n, onLocaleChange } from './i18n/index.js';
-import { DEFAULT_LEVEL_ID } from './levels/index.js';
+import { DEFAULT_LEVEL_ID, getLevelForPreset } from './levels/index.js';
 import { initPythonUI, loadPythonPreset, preloadPythonRuntime, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
 import { createQuadcopter } from './scene/quadcopter.js';
 import { refreshFlightStatus } from './ui/flight-status.js';
@@ -97,11 +98,19 @@ function init() {
     initAxesBars();
     initGamepad();
     initKeyboard({ onReset: () => {
+        resetTouchControls();
         session.reset();
         refreshPythonUI();
     } });
+    initTouchControls({
+        onReset: () => {
+            session.reset();
+            refreshPythonUI();
+        },
+    });
     initPythonUI();
     initLevelUI({ onSelect: (id) => {
+        resetTouchControls();
         session.loadLevel(id);
         setPythonLevel(id);
         refreshPythonUI();
@@ -145,6 +154,7 @@ function init() {
             onRun: startPythonAutopilot,
             onStop: stopPythonAutopilot,
             onReset: () => {
+                resetTouchControls();
                 session.reset();
                 refreshPythonUI();
             },
@@ -161,10 +171,23 @@ function init() {
     document.getElementById('theme-btn-sunset').addEventListener('click', () => applyTheme('sunset', world));
     document.getElementById('theme-btn-night').addEventListener('click', () => applyTheme('night', world));
 
-    document.getElementById('python-preset-select').addEventListener('change', (e) => loadPythonPreset(e.target.value));
+    document.getElementById('python-preset-select').addEventListener('change', (e) => {
+        const preset = e.target.value;
+        const level = getLevelForPreset(preset);
+        const levelSelect = document.getElementById('level-select');
+
+        if (level && levelSelect && levelSelect.value !== level.id) {
+            levelSelect.value = level.id;
+            levelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+        }
+
+        loadPythonPreset(preset);
+    });
     document.getElementById('btn-run-python').addEventListener('click', startPythonAutopilot);
     document.getElementById('btn-stop-python').addEventListener('click', stopPythonAutopilot);
     document.getElementById('btn-reset-drone').addEventListener('click', () => {
+        resetTouchControls();
         session.reset();
         refreshPythonUI();
     });

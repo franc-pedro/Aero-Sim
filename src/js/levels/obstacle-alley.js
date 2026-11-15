@@ -58,5 +58,28 @@ export const obstacleAlley = {
             'python.mission.obstacle-alley.hint.4',
         ],
         landingPad: missionPad,
+        lesson: {
+            introKey: 'python.lesson.obstacle-alley.intro',
+            objectiveKeys: [
+                'python.lesson.obstacle-alley.objective.1',
+                'python.lesson.obstacle-alley.objective.2',
+            ],
+            syntaxKey: 'python.lesson.obstacle-alley.syntax',
+            syntaxCaptionKey: 'python.lesson.obstacle-alley.syntaxCaption',
+            vocabularyKeys: [
+                'python.lesson.obstacle-alley.vocab.1',
+                'python.lesson.obstacle-alley.vocab.2',
+            ],
+            quiz: {
+                questionKey: 'python.lesson.obstacle-alley.quiz.question',
+                optionKeys: [
+                    'python.lesson.obstacle-alley.quiz.option.1',
+                    'python.lesson.obstacle-alley.quiz.option.2',
+                    'python.lesson.obstacle-alley.quiz.option.3',
+                ],
+                answerIndex: 0,
+                explanationKey: 'python.lesson.obstacle-alley.quiz.explanation',
+            },
+        },
     },
 };

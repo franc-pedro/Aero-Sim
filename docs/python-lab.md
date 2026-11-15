@@ -1,6 +1,6 @@
 # Guia do Professor — Laboratório Python
 
-Este guia acompanha o **AERO-SIM 1.6.1** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
+Este guia acompanha o **AERO-SIM 1.7.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
 
 ## 1. O que os alunos aprendem
 
@@ -25,6 +25,9 @@ A API Python é compatível com o subconjunto da **djitellopy**. O código pode 
 | Loop Lagoon | Ciclos `for` | 4 | Regresso à origem |
 | Function Forge | Funções | 8 (duas voltas) | Regresso à origem |
 | Obstacle Alley | Obstáculos e direção | 3 | Verde, no fim |
+| Variable Valley | Variáveis e parâmetros | 3 | Verde, no fim |
+| Conditional Canyon | Condições e sensores | 3 | Verde, no fim |
+| Sensor Summit | Ciclos `while` e sensores | 3 | Verde, no fim |
 
 O nível **Training Course** e o **Ring Gauntlet** continuam disponíveis como voo livre e desafios manuais.
 
@@ -85,6 +88,8 @@ Perguntas para a turma:
 - O que muda se usarmos `move_up(100)`?
 - Porque aparece `Height: 0` antes do takeoff?
 
+> **Tablet/telemóvel:** ao executar o script, o simulador passa para ecrã inteiro para se acompanhar o voo. A barra superior permite **Parar** ou voltar ao laboratório; no fim da execução, o editor regressa automaticamente.
+
 ## 5. Missão guiada — Playground Circuit
 
 O nível **Python Playground** é o nível inicial e inclui a missão **Playground Circuit**.
@@ -101,6 +106,14 @@ Critérios de sucesso:
 4. Não colide com a moldura dos anéis.
 
 O laboratório mostra o progresso (`Gates 0/3`), o estado de aterragem e as dicas. A missão fica marcada como concluída quando os três anéis forem passados e a aterragem for feita na plataforma verde.
+
+### Lição, quiz e progresso
+
+- O botão **Lição** abre os objetivos, a explicação, a sintaxe, as palavras-chave e uma verificação rápida.
+- O botão **Progresso** mostra as missões concluídas, as dicas usadas e o resultado dos quizzes.
+- Os vistos ✓ aparecem no seletor de níveis.
+- O progresso fica apenas no browser e pode ser reiniciado no painel **Progresso**.
+- As dicas são reveladas uma a uma; o botão **Mostrar todas** só aparece depois da primeira.
 
 ### Solução de referência
 
@@ -134,7 +147,7 @@ Notas:
 
 ### Dicas progressivas
 
-O botão **Hints** mostra quatro dicas. Uma boa sequência de intervenção:
+O botão **Dicas** revela as quatro dicas uma a uma. Uma boa sequência de intervenção:
 
 1. Deixar o aluno tentar sem dicas.
 2. Abrir a primeira dica.
@@ -279,7 +292,177 @@ Perguntas:
 - O que acontece se avançarmos demasiado?
 - Como podemos confirmar a direção antes de avançar?
 
-## 9. Sensores e condições
+## 9. Variable Valley — variáveis
+
+O nível **Variable Valley** introduz variáveis com um percurso reto de três portais a altitudes diferentes. Em vez de repetir números, o aluno dá-lhes nomes e reutiliza-os nos comandos.
+
+Objetivo:
+
+> Usar variáveis para a altitude e a distância, atravessar os três portais e aterrar na plataforma verde.
+
+Solução de referência:
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+altitude = 300
+step = 100
+distance = 400
+
+tello.move_up(altitude)
+tello.move_forward(distance)
+tello.move_up(step)
+tello.move_forward(distance)
+tello.move_up(step)
+tello.move_forward(distance)
+tello.move_forward(distance)
+
+tello.land()
+tello.end()
+```
+
+Progressão:
+
+1. Fazer o percurso com números escritos diretamente nos comandos.
+2. Substituir os números por `altitude`, `step` e `distance`.
+3. Alterar `altitude` para 350 e comparar o resultado.
+4. Pedir uma variável nova, por exemplo `pad_distance = 400`, e usá-la no último avanço.
+5. Como extensão, transformar a sequência numa função `fly_gate(height, distance)`.
+
+Perguntas:
+
+- Porque é melhor usar `distance` do que repetir `400` várias vezes?
+- O que acontece se alterarmos `step` para 50?
+- O nome da variável deve explicar o quê? Dá um exemplo.
+- Qual é a diferença entre uma variável e uma instrução?
+
+Resposta do quiz: a primeira opção — o drone sobe 200 cm em vez de 300 cm, porque `move_up(altitude)` lê o valor atual da variável.
+
+## 10. Conditional Canyon — condições
+
+O nível **Conditional Canyon** introduz o `if`. O aluno lê a altitude com `get_height()` e só sobe quando está abaixo do alvo.
+
+Objetivo:
+
+> Verificar a altitude antes de cada portal, subir apenas quando for necessário e aterrar na plataforma verde.
+
+Solução de referência:
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+target = 400
+if tello.get_height() < target:
+    tello.move_up(target - tello.get_height())
+tello.move_forward(400)
+
+target = 500
+if tello.get_height() < target:
+    tello.move_up(target - tello.get_height())
+tello.move_forward(400)
+
+target = 600
+if tello.get_height() < target:
+    tello.move_up(target - tello.get_height())
+tello.move_forward(400)
+
+tello.move_forward(400)
+
+tello.land()
+tello.end()
+```
+
+Progressão:
+
+1. Fazer a primeira subida com um valor fixo e comparar com a leitura de `get_height()`.
+2. Introduzir `if tello.get_height() < target:`.
+3. Reutilizar o mesmo bloco antes dos três portais, mudando `target`.
+4. Discutir o que acontece se `target` for menor do que a altitude atual.
+5. Como extensão, adicionar `else: print("Altura suficiente")`.
+
+Perguntas:
+
+- Porque é que o bloco tem de estar indentado?
+- O que acontece se usarmos `>` em vez de `<`?
+- Porque é melhor calcular `target - tello.get_height()` do que usar sempre `move_up(100)`?
+- Que outros sensores poderiam controlar uma decisão?
+
+Resposta do quiz: a primeira opção — 400 é menor do que 500, por isso o drone sobe 100 cm.
+
+## 11. Sensor Summit — while e sensores
+
+O nível **Sensor Summit** fecha o percurso com ciclos `while` e leitura de sensores. O aluno sobe em passos pequenos até cada portal, verificando `get_height()` a cada iteração.
+
+Objetivo:
+
+> Sobe até cada portal usando `get_height()` num ciclo `while` e aterra na plataforma verde.
+
+Solução de referência:
+
+```python
+from djitellopy import Tello
+import time
+
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+target = 400
+while tello.get_height() < target:
+    tello.move_up(50)
+    time.sleep(0.1)
+tello.move_forward(300)
+tello.move_forward(300)
+
+target = 700
+while tello.get_height() < target:
+    tello.move_up(50)
+    time.sleep(0.1)
+tello.move_forward(400)
+
+target = 1000
+while tello.get_height() < target:
+    tello.move_up(50)
+    time.sleep(0.1)
+tello.move_forward(400)
+
+tello.move_forward(200)
+
+tello.land()
+tello.end()
+```
+
+Progressão:
+
+1. Subir com um número fixo de passos e comparar com a leitura de `get_height()`.
+2. Introduzir `while tello.get_height() < target:`.
+3. Colocar `move_up(50)` e `time.sleep(0.1)` dentro do ciclo.
+4. Repetir para 400, 700 e 1000, avançando para fora do plano de cada portal antes de subir.
+5. Discutir o que acontece se a condição nunca ficar falsa.
+6. Como extensão, imprimir a altura em cada iteração com `print(tello.get_height())`.
+
+Perguntas:
+
+- Porque é que a condição é verificada antes de cada subida?
+- O que acontece se `move_up(50)` ficar fora do ciclo?
+- Porque precisamos de `time.sleep()`?
+- Como podemos evitar um ciclo infinito?
+- Que outros sensores podem controlar a missão?
+
+Resposta do quiz: a primeira opção — se a altura já for 400 e o alvo for 400, a condição `400 < 400` é falsa e o bloco não corre.
+
+## 12. Sensores e condições
 
 Exemplo **Sensors**:
 
@@ -320,7 +503,7 @@ while tello.get_height() < 150:
 
 O `time.sleep()` não bloqueia o simulador e pode ser interrompido com **Stop**.
 
-## 10. Controlo contínuo
+## 13. Controlo contínuo
 
 `send_rc_control(left_right, forward_backward, up_down, yaw)` envia valores entre -100 e 100. Deve ser chamado repetidamente num ciclo:
 
@@ -340,7 +523,7 @@ Atividades:
 - fazer um slalom;
 - comparar `move_forward()` com `send_rc_control()`.
 
-## 11. Erros comuns e ajuda
+## 14. Erros comuns e ajuda
 
 O editor marca a linha e mostra uma dica. A consola mantém o traceback completo para consulta.
 
@@ -356,12 +539,13 @@ O editor marca a linha e mostra uma dica. A consola mantém o traceback completo
 
 O botão **Stop** interrompe o script. Se o drone estiver a voar, aterra automaticamente. O **Reset Pos** repõe a missão e o drone no início.
 
-## 12. Gestão da aula
+## 15. Gestão da aula
 
 - Cada aluno pode usar o seu próprio browser; o código fica guardado nesse browser.
 - Não há contas nem envio de dados.
 - Para partilhar um projeto, usar **Download .py** e depois **Open .py**.
 - Para limpar o código de um posto, alterar o exemplo ou limpar o `localStorage` do browser.
+- O progresso e os quizzes ficam no `localStorage` do browser; o botão **Reiniciar progresso** limpa apenas o progresso, não o código.
 - O botão **API** abre a referência dos métodos disponíveis.
 - O autocomplete aparece ao escrever `tello.`.
 
@@ -372,17 +556,20 @@ Se o Python não carregar:
 3. recarregar a página;
 4. verificar a consola de desenvolvimento.
 
-## 13. Avaliação sugerida
+## 16. Avaliação sugerida
 
 | Critério | Indicador |
 |---|---|
 | Sequência | O script executa as instruções pela ordem correta |
 | Precisão | O drone passa nos anéis sem colidir |
+| Variáveis | O aluno usa nomes significativos e altera um valor sem duplicar comandos |
+| Condições e sensores | O aluno usa if/while e get_height() para adaptar o voo |
 | Depuração | O aluno identifica e corrige um erro com ajuda do editor |
 | Abstração | O aluno usa um ciclo ou função para evitar repetição |
+| Verificação | O aluno explica a resposta do quiz e o efeito de alterar uma variável |
 | Autonomia | O aluno consulta a API e as dicas antes de pedir solução |
 
-## 14. Limitações atuais
+## 17. Limitações atuais
 
 - Apenas a biblioteca padrão do Python está disponível.
 - Vídeo, enxames, mission pads e `control_step(state, dt)` não estão implementados.

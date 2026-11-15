@@ -60,5 +60,28 @@ export const functionForge = {
             'python.mission.function-forge.hint.4',
         ],
         landingPad: { x: 0, z: 0, radius: 3 },
+        lesson: {
+            introKey: 'python.lesson.function-forge.intro',
+            objectiveKeys: [
+                'python.lesson.function-forge.objective.1',
+                'python.lesson.function-forge.objective.2',
+            ],
+            syntaxKey: 'python.lesson.function-forge.syntax',
+            syntaxCaptionKey: 'python.lesson.function-forge.syntaxCaption',
+            vocabularyKeys: [
+                'python.lesson.function-forge.vocab.1',
+                'python.lesson.function-forge.vocab.2',
+            ],
+            quiz: {
+                questionKey: 'python.lesson.function-forge.quiz.question',
+                optionKeys: [
+                    'python.lesson.function-forge.quiz.option.1',
+                    'python.lesson.function-forge.quiz.option.2',
+                    'python.lesson.function-forge.quiz.option.3',
+                ],
+                answerIndex: 0,
+                explanationKey: 'python.lesson.function-forge.quiz.explanation',
+            },
+        },
     },
 };
