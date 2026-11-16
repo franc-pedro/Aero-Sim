@@ -46,6 +46,13 @@ O deploy para o GitLab Pages é automático através de `.gitlab-ci.yml` a cada 
 
 O guia pedagógico e as soluções das missões estão em [`docs/python-lab.md`](docs/python-lab.md).
 
+## Notas de Desenvolvimento
+
+Este projeto está **em fase de desenvolvimento** (ainda não é uma versão final) e está sujeito a mudanças contínuas. O vosso feedback é não apenas bem-vindo, mas essencial. Agradecemos o vosso contributo.
+
+Durante sua construção, ferramentas de Inteligência Artificial foram utilizadas para auxiliar na geração de código, escrita de testes e elaboração de parte da documentação, com tudo sendo devidamente revisto e validado manualmente.
+
+
 ## Licença
 
 O código do AERO-SIM é distribuído sob a **licença MIT**. Consulta [`LICENSE`](LICENSE).
