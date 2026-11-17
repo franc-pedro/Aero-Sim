@@ -5,11 +5,11 @@ import { droneState } from '../core/state.js';
 const CAMERA_OFFSET = new THREE.Vector3(0, 2.5, -6);
 const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);
 
-const POSITION_LAMBDA = 12.0;  // Position spring response (1/s)
-const LOOK_LAMBDA = 14.0;      // Look-target spring response (1/s)
-const YAW_LAMBDA = 12.0;       // Orbit yaw response (1/s)
-const VELOCITY_LEAD = 0.06;    // Camera position look-ahead (seconds)
-const LOOK_LEAD = 0.04;        // Look-target look-ahead (seconds)
+const POSITION_LAMBDA = 8.5;   // Position spring response (1/s)
+const LOOK_LAMBDA = 10.0;      // Look-target spring response (1/s)
+const YAW_LAMBDA = 9.0;        // Orbit yaw response (1/s)
+const VELOCITY_LEAD = 0.035;  // Camera position look-ahead (seconds)
+const LOOK_LEAD = 0.03;        // Look-target look-ahead (seconds)
 
 const _offset = new THREE.Vector3();
 const _targetPos = new THREE.Vector3();

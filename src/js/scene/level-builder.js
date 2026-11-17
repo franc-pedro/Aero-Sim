@@ -84,8 +84,8 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
     const groundMat = new THREE.MeshStandardMaterial({
         color: theme.groundColor,
-        roughness: 0.75,
-        metalness: 0.1,
+        roughness: 0.85,
+        metalness: 0.04,
     });
     const groundMesh = new THREE.Mesh(groundGeo, groundMat);
     groundMesh.rotation.x = -Math.PI / 2;
@@ -99,6 +99,8 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         theme.gridSub
     );
     gridHelper.position.y = 0.05;
+    gridHelper.material.transparent = true;
+    gridHelper.material.opacity = theme.gridOpacity ?? 0.68;
     root.add(gridHelper);
 
     // Optional landing pads for mission levels.

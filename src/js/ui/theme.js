@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { SCENE_THEMES } from '../config/themes.js';
+import { applyAtmosphere } from '../scene/atmosphere.js';
 
 export function applyTheme(themeName, world) {
     const cfg = SCENE_THEMES[themeName] || SCENE_THEMES.daylight;
@@ -18,15 +19,8 @@ export function applyTheme(themeName, world) {
         world.scene.background = new THREE.Color(cfg.sky);
         world.scene.fog = new THREE.FogExp2(cfg.fog, cfg.fogDensity);
     }
-    if (world.ambientLight) world.ambientLight.intensity = cfg.ambientIntensity;
-    if (world.hemiLight) {
-        world.hemiLight.color.setHex(cfg.hemiSky);
-        world.hemiLight.groundColor.setHex(cfg.hemiGround);
-        world.hemiLight.intensity = cfg.hemiIntensity;
-    }
-    if (world.dirLight) {
-        world.dirLight.color.setHex(cfg.dirColor);
-        world.dirLight.intensity = cfg.dirIntensity;
+    if (world.atmosphere) {
+        applyAtmosphere(cfg, world.atmosphere, world.renderer);
     }
     if (world.groundMesh) {
         world.groundMesh.material.color.setHex(cfg.groundColor);
@@ -51,6 +45,8 @@ export function applyTheme(themeName, world) {
         cfg.gridSub
     );
     gridHelper.position.y = 0.05;
+    gridHelper.material.transparent = true;
+    gridHelper.material.opacity = cfg.gridOpacity ?? 0.68;
     if (gridParent) gridParent.add(gridHelper);
     world.gridHelper = gridHelper;
     if (world.level) world.level.gridHelper = gridHelper;

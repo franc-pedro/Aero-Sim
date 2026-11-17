@@ -3,6 +3,7 @@ import { showToast } from './toast.js';
 import { updateHUD } from '../ui/hud.js';
 import { notifyCrash, refreshFlightStatus } from '../ui/flight-status.js';
 import { addCameraShake, updateCamera } from '../simulation/camera.js';
+import { updateDroneShadow } from '../scene/atmosphere.js';
 import { updateMission } from '../python/mission.js';
 import {
     capturePreviousState,
@@ -146,6 +147,7 @@ export function startLoop({ scene, camera, renderer, world }) {
         updatePropellers(frameDt, world);
         updateCamera(camera, frameDt);
         updateSunShadow();
+        updateDroneShadow(world.atmosphere, droneState.renderPos);
         updateHUD(frameDt);
 
         renderer.render(scene, camera);

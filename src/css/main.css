@@ -1572,3 +1572,35 @@ body.gamepad-connected #bottom-hud .gamepad-calibration {
     border-color: var(--border);
     background: var(--surface-muted);
 }
+
+/* Minimal docked interface */
+#ui-overlay {
+    padding: 1.1rem;
+}
+
+#ui-overlay header {
+    padding: 0.4rem;
+}
+
+#bottom-hud {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+    box-shadow: var(--shadow-panel);
+}
+
+#bottom-hud > .glass-panel {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+#bottom-hud .sub-card {
+    background: var(--surface-muted);
+    border-color: var(--border);
+}
+
+#toast {
+    border-radius: 12px;
+}
