@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SCENE_THEMES } from '../config/themes.js';
 
 const DEFAULT_RING_RADIUS = 4;
-const DEFAULT_RING_TUBE = 0.4;
+const DEFAULT_RING_TUBE = 0.25;
 const DEFAULT_BOUNDS = { halfSize: 180, ceiling: 150 };
 const DEFAULT_SPAWN = { x: 0, y: 1.5, z: 0, yaw: 0 };
 
@@ -140,6 +140,7 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     // Pillars / towers
     const getObstacleMaterial = makeObstacleMaterials(palette);
     const obstacles = [];
+    const solids = [];
 
     (def.obstacles || []).forEach((obstacle) => {
         const radius = obstacle.radius ?? 2;
@@ -152,12 +153,18 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         mesh.receiveShadow = true;
         root.add(mesh);
 
-        obstacles.push({
+        const collider = {
+            shape: 'cylinder',
             mesh,
             radius,
             height,
+            bottom: 0,
+            top: height,
+            kind: obstacle.kind || 'pillar',
             pos: new THREE.Vector3(obstacle.x, height / 2, obstacle.z),
-        });
+        };
+        obstacles.push(collider);
+        solids.push(collider);
     });
 
     // Rings and gates
@@ -198,19 +205,40 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         if (collider.isGate) gates.push(collider);
     });
 
-    // Optional decorative structures (no collider). Use them outside the
-    // playable bounds for landmarks, or extend collision support later.
+    // Decorative structures are solid by default so new level props cannot be
+    // flown through. Set `solid: false` only for a deliberately non-solid
+    // backdrop.
     (def.decor || []).forEach((decor) => {
         let geometry;
+        let collider;
+        const y = decor.y ?? 0;
+        const height = decor.height ?? 10;
+
         if (decor.type === 'cylinder') {
             const radius = decor.radius ?? 2;
-            geometry = new THREE.CylinderGeometry(radius, radius, decor.height ?? 10, 16);
+            geometry = new THREE.CylinderGeometry(radius, radius, height, 16);
+            collider = {
+                shape: 'cylinder',
+                mesh: null,
+                radius,
+                height,
+                bottom: y - height / 2,
+                top: y + height / 2,
+                isDecor: true,
+                pos: new THREE.Vector3(decor.x ?? 0, y, decor.z ?? 0),
+            };
         } else {
-            geometry = new THREE.BoxGeometry(
-                decor.width ?? 10,
-                decor.height ?? 10,
-                decor.depth ?? 10
-            );
+            const width = decor.width ?? 10;
+            const depth = decor.depth ?? 10;
+            geometry = new THREE.BoxGeometry(width, height, depth);
+            collider = {
+                shape: 'box',
+                mesh: null,
+                halfExtents: new THREE.Vector3(width / 2, height / 2, depth / 2),
+                yaw: decor.yaw ?? 0,
+                isDecor: true,
+                pos: new THREE.Vector3(decor.x ?? 0, y, decor.z ?? 0),
+            };
         }
 
         const material = new THREE.MeshStandardMaterial({
@@ -219,11 +247,16 @@ export function buildLevel(def, scene, themeName = 'daylight') {
             metalness: decor.metalness ?? 0.05,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(decor.x ?? 0, decor.y ?? 0, decor.z ?? 0);
+        mesh.position.set(decor.x ?? 0, y, decor.z ?? 0);
         mesh.rotation.y = decor.yaw ?? 0;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         root.add(mesh);
+
+        if (decor.solid !== false) {
+            collider.mesh = mesh;
+            solids.push(collider);
+        }
     });
 
     return {
@@ -232,6 +265,7 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         groundMesh,
         gridHelper,
         obstacles,
+        solids,
         rings,
         gates,
         bounds: { ...DEFAULT_BOUNDS, ...(def.bounds || {}) },

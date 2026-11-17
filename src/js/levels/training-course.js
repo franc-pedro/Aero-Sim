@@ -1,7 +1,7 @@
 import { createRng } from './rng.js';
 
 const RING_RADIUS = 4;
-const RING_TUBE = 0.4;
+const RING_TUBE = 0.25;
 
 // The training course keeps the original idea: pillars scattered across the
 // grid and five gates leading away from the spawn. The layout is seeded so it

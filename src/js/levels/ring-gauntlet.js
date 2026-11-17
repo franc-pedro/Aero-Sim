@@ -1,5 +1,5 @@
 const RING_RADIUS = 4;
-const RING_TUBE = 0.4;
+const RING_TUBE = 0.25;
 
 const spawn = { x: 0, y: 1.5, z: 0, yaw: 0 };
 

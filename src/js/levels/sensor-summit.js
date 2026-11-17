@@ -1,5 +1,5 @@
 const RING_RADIUS = 3;
-const RING_TUBE = 0.35;
+const RING_TUBE = 0.25;
 
 const spawn = { x: 0, y: 1.5, z: 0, yaw: 0 };
 const missionPad = { x: 0, z: 16, radius: 3, color: 0x10b981 };

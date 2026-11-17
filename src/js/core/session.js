@@ -27,6 +27,7 @@ export function createSession({ scene, world }) {
         world.groundMesh = current.groundMesh;
         world.gridHelper = current.gridHelper;
         world.obstacles = current.obstacles;
+        world.solids = current.solids;
         world.rings = current.rings;
         world.gates = current.gates;
         world.bounds = current.bounds;
