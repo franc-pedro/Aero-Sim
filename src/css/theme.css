@@ -40,6 +40,14 @@
     --glass-border: var(--border);
     --card-bg: var(--surface-muted);
     --card-border: var(--border);
+
+    /* FPV HUD palette */
+    --fpv-sky: #93c5fd;
+    --fpv-ground: #10b981;
+    --fpv-horizon: #ffffff;
+    --fpv-ladder: rgba(255, 255, 255, 0.9);
+    --fpv-aircraft: #f43f5e;
+    --fpv-ring: rgba(23, 32, 51, 0.35);
 }
 
 [data-theme="night"] {
@@ -79,4 +87,12 @@
 
     --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.28);
     --shadow-control: 0 2px 8px rgba(0, 0, 0, 0.22);
+
+    /* FPV HUD palette */
+    --fpv-sky: #3b82f6;
+    --fpv-ground: #059669;
+    --fpv-horizon: #ffffff;
+    --fpv-ladder: rgba(255, 255, 255, 0.9);
+    --fpv-aircraft: #fb7185;
+    --fpv-ring: rgba(238, 243, 251, 0.35);
 }

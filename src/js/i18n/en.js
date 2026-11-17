@@ -42,12 +42,15 @@ export default {
     'gamepad.connectedWithName': 'Connected: {name}',
 
     'telemetry.title': 'Telemetry Data',
+    'telemetry.short': 'Telemetry',
     'telemetry.altitude': 'Altitude',
     'telemetry.speed': 'Speed',
     'telemetry.throttle': 'Throttle',
     'telemetry.battery': 'Battery',
 
     'hud.stickCalibration': 'Stick & Axis Calibration',
+    'hud.attitude': 'Attitude',
+    'hud.horizonAria': 'Artificial horizon showing pitch and roll',
     'hud.pitchAxis': 'Pitch Axis:',
     'hud.autoDetect': 'Auto Detect',
     'hud.axis1': 'Axis 1',

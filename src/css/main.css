@@ -755,22 +755,51 @@ body.touch-ui .mobile-hide {
 .touch-hud {
     display: flex;
     align-items: center;
-    gap: 0.9rem;
-    padding: 0.4rem 0.8rem;
+    gap: 0.75rem;
+    padding: 0.4rem 0.75rem;
     border: 1px solid var(--glass-border);
     border-radius: 999px;
     background: var(--glass-bg);
     backdrop-filter: blur(14px);
     color: var(--text-secondary);
-    font-size: 10px;
     line-height: 1.2;
     white-space: nowrap;
 }
 
-.touch-hud strong {
+.touch-hud-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.touch-hud-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 10px;
+    color: var(--text-secondary);
+    min-width: 78px;
+}
+
+.touch-hud-item strong {
     margin-left: 0.15rem;
     color: var(--text-primary);
     font-family: ui-monospace, 'SFMono-Regular', Consolas, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.touch-mini-horizon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.touch-mini-horizon-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .touch-sticks {
@@ -1583,24 +1612,457 @@ body.gamepad-connected #bottom-hud .gamepad-calibration {
 }
 
 #bottom-hud {
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+#bottom-hud .fpv-dock {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.35rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 0.5rem;
+    padding: 0.55rem 0.7rem;
     box-shadow: var(--shadow-panel);
+    pointer-events: auto;
+    max-width: min(1200px, calc(100vw - 2.2rem));
 }
 
-#bottom-hud > .glass-panel {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
+#bottom-hud .gamepad-calibration {
+    display: none;
 }
 
-#bottom-hud .sub-card {
+body.gamepad-connected #bottom-hud .gamepad-calibration,
+body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
+    display: flex;
+}
+
+.fpv-dock-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fpv-dock-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.1rem 0.3rem 0.35rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.fpv-dock-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    gap: 0.2rem;
+    padding: 0 0.25rem;
+}
+
+.fpv-dock-body-center {
+    align-items: center;
+}
+
+.fpv-dock-separator {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    margin: 0.15rem 0;
+}
+
+/* Telemetry column */
+.fpv-telemetry {
+    min-width: 120px;
+}
+
+.fpv-readout {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.15rem 0;
+    border-bottom: 1px solid transparent;
+}
+
+.fpv-readout + .fpv-readout {
+    border-top: 1px solid var(--border);
+}
+
+.fpv-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    min-width: 1.6rem;
+}
+
+.fpv-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.fpv-readout-sm .fpv-value {
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.fpv-value-muted {
+    color: var(--accent);
+}
+
+.fpv-value-success {
+    color: var(--success);
+}
+
+.fpv-value-danger {
+    color: var(--danger);
+    animation: fpv-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes fpv-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+/* Attitude indicator */
+.fpv-attitude {
+    min-width: 120px;
+}
+
+.fpv-adi {
+    position: relative;
+    width: 96px;
+    height: 96px;
+}
+
+.fpv-adi-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.fpv-adi-aircraft {
+    pointer-events: none;
+}
+
+.fpv-adi-degrees {
+    position: absolute;
+    bottom: 0.05rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    line-height: 1;
+    padding: 0.05rem 0.35rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* Calibration column */
+.fpv-calibration {
+    min-width: 220px;
+}
+
+.fpv-sticks {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.fpv-stick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.fpv-stick-ring {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
     background: var(--surface-muted);
-    border-color: var(--border);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fpv-stick-cross {
+    position: absolute;
+    inset: 0;
+}
+
+.fpv-stick-cross::before,
+.fpv-stick-cross::after {
+    content: '';
+    position: absolute;
+    background: var(--border-strong);
+    opacity: 0.5;
+}
+
+.fpv-stick-cross::before {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+}
+
+.fpv-stick-cross::after {
+    height: 1px;
+    width: 100%;
+    top: 50%;
+    left: 0;
+}
+
+.fpv-stick-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: transform 0.05s linear;
+}
+
+.fpv-stick-dot-left {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+}
+
+.fpv-stick-dot-right {
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+.fpv-stick-label {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+}
+
+.fpv-stick-readout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.1rem 0.5rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    min-width: 56px;
+}
+
+.fpv-stick-readout > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.25rem;
+}
+
+.fpv-stick-readout span:last-child {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.fpv-axis-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.25rem 0.4rem;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.65rem;
+}
+
+.fpv-axes {
+    width: 100%;
+    margin-top: 0.3rem;
+}
+
+.fpv-axes-bars {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.25rem;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.fpv-axes-readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+    padding: 0 0.15rem;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+}
+
+.fpv-axes-readout kbd {
+    font-size: 0.6rem;
+}
+
+.fpv-axis-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.fpv-axis-track {
+    width: 100%;
+    height: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.fpv-axis-bar {
+    height: 100%;
+    width: 0%;
+    margin-left: 50%;
+    background: var(--accent);
+    transition: width 0.05s linear;
+}
+
+.fpv-axis-bar-active {
+    background: var(--success);
+}
+
+.fpv-axis-label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.fpv-axis-label-active {
+    color: var(--success);
+    font-weight: 700;
+}
+
+/* Controls help column */
+.fpv-controls {
+    min-width: 130px;
+}
+
+.fpv-control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.fpv-control-row:last-child {
+    border-bottom: none;
+}
+
+.fpv-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.fpv-key kbd {
+    display: inline-block;
+    min-width: 1.2rem;
+    text-align: center;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.12rem 0.22rem;
+    line-height: 1;
 }
 
 #toast {
     border-radius: 12px;
+}
+
+/* Responsive dock */
+@media (max-width: 1150px) {
+    #bottom-hud .fpv-dock {
+        gap: 0.25rem;
+        padding: 0.5rem;
+    }
+
+    .fpv-calibration {
+        min-width: 190px;
+    }
+
+    .fpv-sticks {
+        gap: 0.4rem;
+    }
+
+    .fpv-stick-ring {
+        width: 40px;
+        height: 40px;
+    }
+
+    .fpv-controls {
+        min-width: 110px;
+    }
+
+    .fpv-control-row {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 991px) {
+    .fpv-calibration {
+        min-width: 170px;
+    }
+
+    .fpv-sticks {
+        gap: 0.3rem;
+    }
+
+    .fpv-stick-readout {
+        display: none;
+    }
+
+    .fpv-axes-readout span:last-child {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    #bottom-hud {
+        display: none;
+    }
 }

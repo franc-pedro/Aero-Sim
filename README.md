@@ -2,13 +2,14 @@
 
 Simulador de voo de um quadcopter para treino manual e para aprender programação com Python.
 
-**Versão atual: 1.9.0**
+**Versão atual: 1.10.0**
 
 🔗 **Aplicação online:** https://franc-pedro.gitlab.io/drone-sim/
 
 ## O que inclui
 
 - Modo Manual com teclado, gamepad e controlos de toque.
+- HUD de telemetria estilo FPV com altitude, velocidade e horizonte artificial.
 - Atmosfera com iluminação suave, sombras subtis e câmara fluida.
 - **7 missões Python** com lições, quizzes, dicas progressivas e progresso local.
 - Missões de sequência, ciclos, funções, variáveis, condições e sensores.

@@ -27,8 +27,9 @@
                     <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
                     <p class="text-xs theme-muted-text">
                         <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.9.0</span> ·
+                        <span>v1.10.0</span> ·
                         <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
+                        <span id="flight-mode" data-i18n="status.mode2AltHold" class="text-[10px] theme-accent-text font-bold tracking-wider theme-accent-bg px-2 py-0.5 rounded-full">MODE 2 / ALT HOLD</span>
                     </p>
                 </div>
             </div>
@@ -90,133 +91,187 @@
 
         <!-- Python Autopilot IDE is rendered as a split-screen panel outside this overlay. -->
 
-        <!-- Bottom HUD: Telemetry & Controls Guide -->
-        <div id="bottom-hud" class="grid grid-cols-1 md:grid-cols-3 gap-4 pointer-events-auto items-end">
+        <!-- Bottom HUD: FPV telemetry, attitude indicator and controls -->
+        <div id="bottom-hud" class="pointer-events-auto">
 
-            <!-- Telemetry Panel -->
-            <div class="glass-panel p-5 rounded-2xl shadow-xl space-y-3">
-                <h2 class="text-xs font-bold uppercase tracking-wider theme-accent-text flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    <span data-i18n="telemetry.title">Telemetry Data</span>
-                </h2>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <div class="sub-card p-2.5 rounded-xl">
-                        <span data-i18n="telemetry.altitude" class="text-xs theme-muted-text block">Altitude</span>
-                        <span id="telemetry-alt" class="text-lg font-mono font-bold">0.0 m</span>
+            <div class="fpv-dock">
+
+                <!-- Telemetry column -->
+                <div class="fpv-dock-col fpv-telemetry">
+                    <div class="fpv-dock-header">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span data-i18n="telemetry.short">Telemetry</span>
                     </div>
-                    <div class="sub-card p-2.5 rounded-xl">
-                        <span data-i18n="telemetry.speed" class="text-xs theme-muted-text block">Speed</span>
-                        <span id="telemetry-speed" class="text-lg font-mono font-bold">0.0 m/s</span>
-                    </div>
-                    <div class="sub-card p-2.5 rounded-xl">
-                        <span data-i18n="telemetry.throttle" class="text-xs theme-muted-text block">Throttle</span>
-                        <span id="telemetry-throttle" class="text-lg font-mono font-bold theme-accent-text">0%</span>
-                    </div>
-                    <div class="sub-card p-2.5 rounded-xl">
-                        <span data-i18n="telemetry.battery" class="text-xs theme-muted-text block">Battery</span>
-                        <span id="telemetry-battery" class="text-lg font-mono font-bold text-emerald-500">100%</span>
+                    <div class="fpv-dock-body">
+                        <div class="fpv-readout">
+                            <span class="fpv-label">ALT</span>
+                            <span id="fpv-alt" class="fpv-value">0.0 m</span>
+                        </div>
+                        <div class="fpv-readout">
+                            <span class="fpv-label">SPD</span>
+                            <span id="fpv-spd" class="fpv-value">0.0 m/s</span>
+                        </div>
+                        <div class="fpv-readout fpv-readout-sm">
+                            <span class="fpv-label" data-i18n="telemetry.throttle">THR</span>
+                            <span id="fpv-thr" class="fpv-value fpv-value-muted">0%</span>
+                        </div>
+                        <div class="fpv-readout fpv-readout-sm">
+                            <span class="fpv-label" data-i18n="telemetry.battery">BAT</span>
+                            <span id="fpv-bat" class="fpv-value fpv-value-success">100%</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Center Status / Live Stick Input Debugger -->
-            <div class="gamepad-calibration lab-hide mobile-hide glass-panel p-4 rounded-2xl shadow-xl flex flex-col items-center justify-between space-y-2.5">
-                <div class="flex items-center justify-between w-full px-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider theme-accent-text flex items-center gap-1.5">
+                <div class="fpv-dock-separator" aria-hidden="true"></div>
+
+                <!-- Attitude indicator -->
+                <div class="fpv-dock-col fpv-attitude">
+                    <div class="fpv-dock-header">
+                        <i class="fa-solid fa-compass"></i>
+                        <span data-i18n="hud.attitude">Attitude</span>
+                    </div>
+                    <div class="fpv-dock-body fpv-dock-body-center">
+                        <div class="fpv-adi" role="img" aria-label="Artificial horizon" data-i18n-aria-label="hud.horizonAria">
+                            <svg viewBox="0 0 120 120" class="fpv-adi-svg">
+                                <defs>
+                                    <clipPath id="fpv-adi-clip">
+                                        <circle cx="60" cy="60" r="54"/>
+                                    </clipPath>
+                                </defs>
+
+                                <!-- Sky / ground background -->
+                                <g clip-path="url(#fpv-adi-clip)">
+                                    <rect x="0" y="0" width="120" height="120" fill="var(--fpv-sky)"/>
+                                    <g id="fpv-horizon-group">
+                                        <rect x="-60" y="60" width="240" height="120" fill="var(--fpv-ground)"/>
+                                        <line id="fpv-horizon-line" x1="-60" y1="60" x2="180" y2="60" stroke="var(--fpv-horizon)" stroke-width="1.5"/>
+                                        <!-- Pitch ladder -->
+                                        <g stroke="var(--fpv-ladder)" stroke-width="1" fill="none" opacity="0.85">
+                                            <line x1="36" y1="38" x2="84" y2="38"/>
+                                            <line x1="30" y1="16" x2="90" y2="16"/>
+                                            <line x1="42" y1="82" x2="78" y2="82"/>
+                                            <line x1="36" y1="104" x2="84" y2="104"/>
+                                        </g>
+                                    </g>
+                                </g>
+
+                                <!-- Fixed aircraft reference -->
+                                <g class="fpv-adi-aircraft">
+                                    <line x1="24" y1="60" x2="46" y2="60" stroke="var(--fpv-aircraft)" stroke-width="2.5" stroke-linecap="round"/>
+                                    <line x1="74" y1="60" x2="96" y2="60" stroke="var(--fpv-aircraft)" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="60" cy="60" r="2.5" fill="var(--fpv-aircraft)"/>
+                                </g>
+
+                                <!-- Outer ring with roll ticks -->
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="var(--fpv-ring)" stroke-width="1.5"/>
+                                <g stroke="var(--fpv-ring)" stroke-width="1.5" stroke-linecap="round">
+                                    <line x1="60" y1="3" x2="60" y2="9"/>
+                                    <line x1="19" y1="21" x2="23" y2="25"/>
+                                    <line x1="101" y1="21" x2="97" y2="25"/>
+                                    <line x1="9" y1="60" x2="15" y2="60"/>
+                                    <line x1="111" y1="60" x2="105" y2="60"/>
+                                </g>
+                            </svg>
+                            <div class="fpv-adi-degrees" aria-hidden="true">
+                                <span id="fpv-roll-deg">0°</span>
+                                <span id="fpv-pitch-deg">0°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fpv-dock-separator" aria-hidden="true"></div>
+
+                <!-- Gamepad calibration -->
+                <div class="gamepad-calibration fpv-dock-col fpv-calibration lab-hide mobile-hide">
+                    <div class="fpv-dock-header">
                         <i class="fa-solid fa-crosshairs"></i>
-                        <span data-i18n="hud.stickCalibration">Stick &amp; Axis Calibration</span>
-                    </span>
-                    <span id="flight-mode" data-i18n="status.mode2AltHold" class="text-[10px] theme-accent-text font-bold tracking-wider theme-accent-bg px-2.5 py-0.5 rounded-full">MODE 2 / ALT HOLD</span>
-                </div>
-
-                <!-- Dual Stick Visualizers -->
-                <div class="flex items-center justify-center gap-5 w-full">
-                    <!-- Left Stick: Throttle (Y) & Yaw (X) -->
-                    <div class="flex flex-col items-center space-y-1">
-                        <div class="relative w-14 h-14 rounded-full sub-card shadow-inner flex items-center justify-center">
-                            <div class="absolute w-full h-[1px] bg-slate-400/30"></div>
-                            <div class="absolute h-full w-[1px] bg-slate-400/30"></div>
-                            <div id="stick-left-dot" class="w-3 h-3 rounded-full bg-sky-500 shadow-[0_0_8px_#0ea5e9]"></div>
+                        <span data-i18n="hud.stickCalibration">Calibration</span>
+                    </div>
+                    <div class="fpv-dock-body fpv-dock-body-center">
+                        <div class="fpv-sticks">
+                            <div class="fpv-stick">
+                                <div class="fpv-stick-ring">
+                                    <div class="fpv-stick-cross"></div>
+                                    <div id="stick-left-dot" class="fpv-stick-dot fpv-stick-dot-left"></div>
+                                </div>
+                                <span class="fpv-stick-label">THR / YAW</span>
+                            </div>
+                            <div class="fpv-stick-readout">
+                                <div><span>P</span><span id="debug-pitch">0.00</span></div>
+                                <div><span>R</span><span id="debug-roll">0.00</span></div>
+                                <div><span>Y</span><span id="debug-yaw">0.00</span></div>
+                                <div><span>T</span><span id="debug-thr">0.00</span></div>
+                            </div>
+                            <div class="fpv-stick">
+                                <div class="fpv-stick-ring">
+                                    <div class="fpv-stick-cross"></div>
+                                    <div id="stick-right-dot" class="fpv-stick-dot fpv-stick-dot-right"></div>
+                                </div>
+                                <span class="fpv-stick-label">PIT / ROL</span>
+                            </div>
                         </div>
-                        <span class="text-[10px] font-mono theme-muted-text">THR / YAW</span>
-                    </div>
 
-                    <!-- Live Numeric Readout -->
-                    <div class="text-[11px] font-mono space-y-0.5 sub-card px-2.5 py-1.5 rounded-xl min-w-[100px]">
-                        <div class="flex justify-between"><span>PIT:</span><span id="debug-pitch" class="text-emerald-500 font-bold">0.00</span></div>
-                        <div class="flex justify-between"><span>ROL:</span><span id="debug-roll" class="theme-accent-text font-bold">0.00</span></div>
-                        <div class="flex justify-between"><span>YAW:</span><span id="debug-yaw" class="theme-accent-text font-bold">0.00</span></div>
-                        <div class="flex justify-between"><span>THR:</span><span id="debug-thr" class="theme-accent-text font-bold">0.00</span></div>
-                    </div>
-
-                    <!-- Right Stick: Pitch (Y) & Roll (X) -->
-                    <div class="flex flex-col items-center space-y-1">
-                        <div class="relative w-14 h-14 rounded-full sub-card shadow-inner flex items-center justify-center">
-                            <div class="absolute w-full h-[1px] bg-slate-400/30"></div>
-                            <div class="absolute h-full w-[1px] bg-slate-400/30"></div>
-                            <div id="stick-right-dot" class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+                        <div class="fpv-axis-row">
+                            <div class="flex items-center gap-1.5">
+                                <label for="pitch-axis-select" data-i18n="hud.pitchAxis" class="theme-muted-text font-medium">Pitch Axis:</label>
+                                <select id="pitch-axis-select" aria-label="Pitch Axis" data-i18n-aria-label="hud.pitchAxis" class="sub-card theme-accent-text font-mono font-semibold text-[11px] rounded px-1.5 py-0.5 focus:outline-none cursor-pointer">
+                                    <option value="auto" data-i18n="hud.autoDetect" selected>Auto</option>
+                                    <option value="3" data-i18n="hud.axis3">A3</option>
+                                    <option value="5" data-i18n="hud.axis5">A5</option>
+                                    <option value="4" data-i18n="hud.axis4">A4</option>
+                                    <option value="1" data-i18n="hud.axis1">A1</option>
+                                    <option value="2" data-i18n="hud.axis2">A2</option>
+                                    <option value="6" data-i18n="hud.axis6">A6</option>
+                                    <option value="7" data-i18n="hud.axis7">A7</option>
+                                </select>
+                            </div>
+                            <label class="flex items-center gap-1 cursor-pointer select-none">
+                                <input id="invert-pitch-checkbox" type="checkbox" class="accent-sky-500 rounded cursor-pointer">
+                                <span data-i18n="hud.invert">Inv</span>
+                            </label>
                         </div>
-                        <span class="text-[10px] font-mono theme-muted-text">PIT / ROL</span>
+
+                        <div class="fpv-axes">
+                            <div id="axes-bar-container" class="fpv-axes-bars">
+                                <!-- Dynamically populated 8 axis meters -->
+                            </div>
+                            <div class="fpv-axes-readout">
+                                <span id="raw-axes-readout" data-i18n="hud.rawAxisAuto" class="font-mono truncate">Active Pitch Ch: Auto</span>
+                                <span><kbd class="px-1.5 py-0.5 sub-card rounded font-mono font-semibold">R</kbd> <span data-i18n="common.reset">Reset</span></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Pitch Axis Selector & Invert Controls -->
-                <div class="w-full flex items-center justify-between gap-2 sub-card px-2.5 py-1.5 rounded-xl text-[11px]">
-                    <div class="flex items-center gap-1.5">
-                        <label for="pitch-axis-select" data-i18n="hud.pitchAxis" class="theme-muted-text font-medium">Pitch Axis:</label>
-                        <select id="pitch-axis-select" aria-label="Pitch Axis" data-i18n-aria-label="hud.pitchAxis" class="sub-card theme-accent-text font-mono font-semibold text-[11px] rounded px-1.5 py-0.5 focus:outline-none cursor-pointer">
-                            <option value="auto" data-i18n="hud.autoDetect" selected>Auto Detect</option>
-                            <option value="3" data-i18n="hud.axis3">Axis 3 (Std)</option>
-                            <option value="5" data-i18n="hud.axis5">Axis 5 (Alt/RC)</option>
-                            <option value="4" data-i18n="hud.axis4">Axis 4 (Alt)</option>
-                            <option value="1" data-i18n="hud.axis1">Axis 1</option>
-                            <option value="2" data-i18n="hud.axis2">Axis 2</option>
-                            <option value="6" data-i18n="hud.axis6">Axis 6</option>
-                            <option value="7" data-i18n="hud.axis7">Axis 7</option>
-                        </select>
+                <div class="gamepad-calibration fpv-dock-separator" aria-hidden="true"></div>
+
+                <!-- Controls help -->
+                <div class="fpv-dock-col fpv-controls lab-hide mobile-hide">
+                    <div class="fpv-dock-header">
+                        <i class="fa-solid fa-gamepad"></i>
+                        <span data-i18n="controls.title">Controls</span>
                     </div>
-                    <label class="flex items-center gap-1 cursor-pointer select-none">
-                        <input id="invert-pitch-checkbox" type="checkbox" class="accent-sky-500 rounded cursor-pointer">
-                        <span data-i18n="hud.invert">Invert</span>
-                    </label>
+                    <div class="fpv-dock-body">
+                        <div class="fpv-control-row">
+                            <span data-i18n="controls.throttle">Throttle</span>
+                            <span class="fpv-key"><kbd>W</kbd><kbd>S</kbd></span>
+                        </div>
+                        <div class="fpv-control-row">
+                            <span data-i18n="controls.yaw">Yaw</span>
+                            <span class="fpv-key"><kbd>A</kbd><kbd>D</kbd></span>
+                        </div>
+                        <div class="fpv-control-row">
+                            <span data-i18n="controls.pitch">Pitch</span>
+                            <span class="fpv-key"><kbd>I</kbd><kbd>K</kbd></span>
+                        </div>
+                        <div class="fpv-control-row">
+                            <span data-i18n="controls.roll">Roll</span>
+                            <span class="fpv-key"><kbd>J</kbd><kbd>L</kbd></span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Live Raw Axes Bar Chart (0..7) -->
-                <div class="w-full space-y-1">
-                    <div id="axes-bar-container" class="grid grid-cols-8 gap-1 w-full sub-card p-1.5 rounded-lg">
-                        <!-- Dynamically populated 8 axis meters -->
-                    </div>
-                    <div class="w-full flex items-center justify-between text-[10px] theme-muted-text px-0.5">
-                        <span id="raw-axes-readout" data-i18n="hud.rawAxisAuto" class="font-mono truncate max-w-[200px]">Active Pitch Ch: Auto</span>
-                        <span><kbd class="px-1.5 py-0.5 sub-card rounded font-mono font-semibold">R</kbd> <span data-i18n="common.reset">Reset</span></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Controls Help Card -->
-            <div class="lab-hide mobile-hide glass-panel p-5 rounded-2xl shadow-xl space-y-2">
-                <h2 class="text-xs font-bold uppercase tracking-wider theme-accent-text flex items-center gap-2">
-                    <i class="fa-solid fa-gamepad"></i>
-                    <span data-i18n="controls.title">Controls Guide (Mode 2)</span>
-                </h2>
-                <div class="text-xs space-y-1.5">
-                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
-                        <span data-i18n="controls.throttle" class="theme-muted-text">Throttle (Up/Down)</span>
-                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">L-Stick Y / W S</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
-                        <span data-i18n="controls.yaw" class="theme-muted-text">Yaw (Rotate)</span>
-                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">L-Stick X / A D</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-slate-400/25 pb-1">
-                        <span data-i18n="controls.pitch" class="theme-muted-text">Pitch (Forward/Back)</span>
-                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">R-Stick Y / ↑ ↓ (I/K)</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span data-i18n="controls.roll" class="theme-muted-text">Roll (Left/Right)</span>
-                        <span class="font-mono sub-card px-2 py-0.5 rounded theme-accent-text font-semibold">R-Stick X / ← → (J/L)</span>
-                    </div>
-                </div>
             </div>
 
         </div>
@@ -226,9 +281,31 @@
     <!-- Touch flight controls (manual mode, touch devices / small screens) -->
     <div id="touch-controls" class="touch-controls" aria-label="Touch flight controls" data-i18n-aria-label="touch.aria">
         <div class="touch-hud" role="group" aria-label="Flight telemetry" data-i18n-aria-label="touch.hudAria">
-            <span><span data-i18n="telemetry.altitude">Altitude</span> <strong id="touch-alt">0.0 m</strong></span>
-            <span><span data-i18n="telemetry.speed">Speed</span> <strong id="touch-speed">0.0 m/s</strong></span>
-            <span><span data-i18n="telemetry.battery">Battery</span> <strong id="touch-battery">100%</strong></span>
+            <div class="touch-hud-row">
+                <span class="touch-hud-item"><span data-i18n="telemetry.altitude">ALT</span> <strong id="touch-alt">0.0 m</strong></span>
+                <span class="touch-hud-item"><span data-i18n="telemetry.speed">SPD</span> <strong id="touch-speed">0.0 m/s</strong></span>
+                <span class="touch-hud-item"><span data-i18n="telemetry.battery">BAT</span> <strong id="touch-battery">100%</strong></span>
+            </div>
+            <div class="touch-mini-horizon" role="img" aria-label="Mini artificial horizon" data-i18n-aria-label="hud.horizonAria">
+                <svg viewBox="0 0 80 80" class="touch-mini-horizon-svg">
+                    <defs>
+                        <clipPath id="touch-horizon-clip">
+                            <circle cx="40" cy="40" r="36"/>
+                        </clipPath>
+                    </defs>
+                    <g clip-path="url(#touch-horizon-clip)">
+                        <rect x="0" y="0" width="80" height="80" fill="var(--fpv-sky)"/>
+                        <rect x="-20" y="40" width="120" height="60" fill="var(--fpv-ground)"/>
+                        <line id="touch-horizon-line" x1="-20" y1="40" x2="100" y2="40" stroke="var(--fpv-horizon)" stroke-width="2"/>
+                    </g>
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="var(--fpv-ring)" stroke-width="1.5"/>
+                    <g stroke="var(--fpv-aircraft)" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="40" x2="32" y2="40"/>
+                        <line x1="48" y1="40" x2="62" y2="40"/>
+                        <circle cx="40" cy="40" r="2" fill="var(--fpv-aircraft)"/>
+                    </g>
+                </svg>
+            </div>
         </div>
         <div class="touch-sticks">
             <div id="touch-stick-left" class="touch-stick">
