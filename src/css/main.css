@@ -943,7 +943,7 @@ body.touch-ui #touch-controls button:focus-visible {
 
     body.touch-ui #mode-btn-manual i,
     body.touch-ui #mode-btn-python i {
-        display: none;
+       display: inline;
     }
 
     body.touch-ui #toast {
@@ -1561,24 +1561,29 @@ button:focus-visible,
     box-shadow: none !important;
 }
 
-/* Compact app header */
+/* Compact app header: brand on the left, controls on the right, no shared bar */
 .app-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.35rem 0.45rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    box-shadow: var(--shadow-panel);
-    min-height: 44px;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    pointer-events: none;
 }
 
 .app-brand {
     display: flex;
     align-items: center;
     gap: 0.55rem;
+    padding: 0.35rem 0.6rem 0.35rem 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
     pointer-events: auto;
 }
 
@@ -1613,6 +1618,12 @@ button:focus-visible,
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    margin-left: auto;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
     pointer-events: auto;
 }
 
@@ -1768,10 +1779,6 @@ body.gamepad-connected #bottom-hud .gamepad-calibration {
 /* Minimal docked interface */
 #ui-overlay {
     padding: 1.1rem;
-}
-
-#ui-overlay header {
-    padding: 0.4rem;
 }
 
 #bottom-hud {
@@ -2207,7 +2214,6 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
 @media (max-width: 767px) {
     .app-header {
         gap: 0.25rem;
-        padding: 0.3rem;
     }
 
     .app-brand {
@@ -2216,6 +2222,7 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
 
     .header-controls {
         width: 100%;
+        padding: 0.3rem;
         display: grid;
         grid-template-columns: 1fr auto;
         align-items: center;
