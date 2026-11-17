@@ -1116,6 +1116,13 @@ button:focus-visible,
     color: var(--accent-contrast);
 }
 
+.mode-icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    pointer-events: none;
+}
+
 .theme-switch {
     gap: 0.15rem;
     border-radius: 10px;
@@ -1554,12 +1561,200 @@ button:focus-visible,
     box-shadow: none !important;
 }
 
-#gamepad-status-badge {
-    display: none;
+/* Compact app header */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+    min-height: 44px;
 }
 
-body.gamepad-connected #gamepad-status-badge {
+.app-brand {
     display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    pointer-events: auto;
+}
+
+.app-brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-size: 13px;
+}
+
+.app-brand-text h1 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text-primary);
+}
+
+.app-brand-text p {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    line-height: 1.2;
+    margin-top: 0.05rem;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    pointer-events: auto;
+}
+
+.header-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+}
+
+.header-select {
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    max-width: 160px;
+}
+
+.header-select:hover {
+    color: var(--accent);
+}
+
+.header-select-lang {
+    max-width: 48px;
+    text-align: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.68rem;
+}
+
+.header-badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0.1rem 0.35rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.mode-switch {
+    padding: 0.2rem;
+    gap: 0.15rem;
+}
+
+.mode-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mode-tab:hover {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.mode-tab-active,
+.mode-tab-active:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.theme-switch {
+    padding: 0.2rem;
+    gap: 0.1rem;
+}
+
+.theme-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.theme-tab:hover {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.theme-tab-active,
+.theme-tab-active:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.gamepad-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: default;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+body.gamepad-connected .gamepad-icon {
+    color: var(--success);
+    border-color: var(--success);
+    background: var(--success-soft);
+}
+
+#gamepad-status-badge,
+#gamepad-dot,
+#gamepad-text {
+    display: none;
 }
 
 #bottom-hud .gamepad-calibration {
@@ -1568,38 +1763,6 @@ body.gamepad-connected #gamepad-status-badge {
 
 body.gamepad-connected #bottom-hud .gamepad-calibration {
     display: flex;
-}
-
-@media (min-width: 768px) {
-    body:not(.gamepad-connected) #bottom-hud {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-/* One clean app bar instead of several floating header cards. */
-#ui-overlay header {
-    padding: 0.45rem 0.55rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    box-shadow: var(--shadow-panel);
-}
-
-#ui-overlay header .glass-panel {
-    padding: 0.2rem;
-    border-color: transparent;
-    border-radius: var(--radius-md);
-    background: transparent;
-    box-shadow: none;
-}
-
-#ui-overlay header .glass-panel:first-child {
-    padding: 0.55rem 0.7rem;
-}
-
-#ui-overlay header .sub-card {
-    border-color: var(--border);
-    background: var(--surface-muted);
 }
 
 /* Minimal docked interface */
@@ -1648,7 +1811,8 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
 .fpv-dock-header {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: space-between;
+    gap: 0.5rem;
     padding: 0.1rem 0.3rem 0.35rem;
     font-size: 0.65rem;
     font-weight: 700;
@@ -1656,6 +1820,31 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
     letter-spacing: 0.06em;
     color: var(--accent);
     white-space: nowrap;
+}
+
+.fpv-dock-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.fpv-flight-mode {
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+    white-space: nowrap;
+}
+
+.fpv-flight-mode.fpv-flight-mode-crashed {
+    color: #ffffff;
+    background: var(--danger);
+    border-color: var(--danger);
+    animation: fpv-pulse 1.2s ease-in-out infinite;
 }
 
 .fpv-dock-body {
@@ -2012,6 +2201,80 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
 
 #toast {
     border-radius: 12px;
+}
+
+/* Responsive header */
+@media (max-width: 767px) {
+    .app-header {
+        gap: 0.25rem;
+        padding: 0.3rem;
+    }
+
+    .app-brand {
+        display: none;
+    }
+
+    .header-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .header-group-level {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .header-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+        gap: 0.25rem;
+    }
+
+    .header-group {
+        padding: 0.15rem 0.25rem;
+        gap: 0.2rem;
+    }
+
+    .header-select {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+        font-size: 0.65rem;
+    }
+
+    .header-select-lang {
+        max-width: 38px;
+    }
+
+    .mode-tab,
+    .theme-tab,
+    .gamepad-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+
+    .header-badge {
+        font-size: 0.6rem;
+        padding: 0.05rem 0.25rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .header-select {
+        font-size: 0.6rem;
+    }
+
+    .mode-tab,
+    .theme-tab,
+    .gamepad-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
 }
 
 /* Responsive dock */

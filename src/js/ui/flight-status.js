@@ -2,8 +2,8 @@ import { controlState, droneState } from '../core/state.js';
 import { showToast } from '../core/toast.js';
 import { formatNumber, t } from '../i18n/index.js';
 
-const NORMAL_BADGE_CLASS = 'text-[10px] theme-accent-text font-bold tracking-wider theme-accent-bg px-2.5 py-0.5 rounded-full';
-const CRASH_BADGE_CLASS = 'text-[10px] font-bold tracking-wider bg-rose-600 text-white px-2.5 py-0.5 rounded-full animate-pulse';
+const NORMAL_BADGE_CLASS = 'fpv-flight-mode';
+const CRASH_BADGE_CLASS = 'fpv-flight-mode fpv-flight-mode-crashed';
 
 export function refreshFlightStatus() {
     const badge = document.getElementById('flight-mode');

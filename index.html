@@ -17,67 +17,73 @@
         <!-- Crash vignette feedback -->
         <div id="crash-vignette" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-150" style="box-shadow: inset 0 0 140px 40px rgba(244, 63, 94, 0.55);"></div>
 
-        <!-- Top Bar: Title, Theme Switcher & Gamepad Status -->
-        <header class="flex flex-wrap justify-between items-center gap-3 w-full">
-            <div class="lab-hide mobile-hide glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 shadow-xl pointer-events-auto">
-                <div class="theme-accent-bg p-2.5 rounded-xl">
-                    <i class="fa-solid fa-helicopter text-xl"></i>
+        <!-- Top Bar: compact title and controls -->
+        <header class="app-header">
+            <div class="app-brand lab-hide mobile-hide">
+                <div class="app-brand-icon">
+                    <i class="fa-solid fa-helicopter"></i>
                 </div>
-                <div>
-                    <h1 class="font-bold text-lg tracking-wide">AERO-SIM</h1>
-                    <p class="text-xs theme-muted-text">
-                        <span data-i18n="app.subtitle">Quadcopter Flight Training</span>
-                        <span>v1.10.0</span> ·
-                        <span id="level-name" class="font-semibold theme-accent-text">Training Course</span>
-                        <span id="flight-mode" data-i18n="status.mode2AltHold" class="text-[10px] theme-accent-text font-bold tracking-wider theme-accent-bg px-2 py-0.5 rounded-full">MODE 2 / ALT HOLD</span>
+                <div class="app-brand-text">
+                    <h1>AERO-SIM</h1>
+                    <p>
+                        <span data-i18n="app.subtitle">Flight Lab</span>
+                        <span>v1.10.1</span>
+                        <span id="level-name" class="hidden">Training Course</span>
                     </p>
                 </div>
             </div>
 
-            <!-- Level / Mode / Theme / Gamepad Controls -->
-            <div class="flex flex-wrap items-center gap-3 pointer-events-auto">
+            <div class="header-controls">
                 <!-- Level Selector & Gate Objective Counter -->
-                <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-layer-group text-xs theme-accent-text"></i>
-                    <select id="level-select" aria-label="Select level" data-i18n-aria-label="level.selectLabel" class="sub-card theme-accent-text text-xs font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer max-w-[220px]"></select>
-                    <span data-i18n="level.gates" class="hidden sm:inline text-[9px] font-bold uppercase tracking-wider theme-muted-text">Gates</span>
-                    <span id="gate-counter" title="Gates passed" data-i18n-title="level.gatesPassed" class="text-[10px] font-mono font-bold theme-muted-text">0/0</span>
+                <div class="header-group header-group-level">
+                    <i class="fa-solid fa-layer-group text-[10px] theme-accent-text"></i>
+                    <select id="level-select" aria-label="Select level" data-i18n-aria-label="level.selectLabel" class="header-select"></select>
+                    <span id="gate-counter" title="Gates passed" data-i18n-title="level.gatesPassed" class="header-badge">0/0</span>
                 </div>
 
-                <!-- Flight Mode Switcher: Manual vs Python Code Autopilot -->
-                <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
-                    <button id="mode-btn-manual" class="mode-tab mode-tab-active" aria-pressed="true">
+                <!-- Secondary actions: mode, theme, language, gamepad -->
+                <div class="header-actions">
+                    <!-- Flight Mode Switcher -->
+                    <div class="header-group mode-switch" role="group" aria-label="Flight mode" data-i18n-aria-label="mode.aria">
+                        <button id="mode-btn-manual" class="mode-tab mode-tab-active" aria-pressed="true" title="Manual flight" data-i18n-title="mode.manual">
+                            <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M6 11h12a4 4 0 0 1 4 4v2a4 4 0 0 1-4 4h-1v-2h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v2H6a4 4 0 0 1-4-4v-2a4 4 0 0 1 4-4Z"/>
+                                <circle cx="8.5" cy="15.5" r="1.5"/>
+                                <circle cx="15.5" cy="15.5" r="1.5"/>
+                                <path d="M2 9h20v2H2z"/>
+                            </svg>
+                        </button>
+                        <button id="mode-btn-python" class="mode-tab" aria-pressed="false" title="Python autopilot" data-i18n-title="mode.python">
+                            <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M11.9 2c-3.3 0-4.7 1.1-4.7 3.6V8h6.3v1H7.2C4.2 9 2 10.8 2 14s2.2 5 5.2 5h1.6v-2.6c0-2.6 1.7-4.4 4.7-4.4h6.3c0-3.4-.7-6-4.7-6h-3.4V5.6c0-1.4 1.2-2.2 3.4-2.2h4.7V2h-7.8Zm-3.1 14.6V21h1.6c2.9 0 4.7-1.8 4.7-4.4V16H8.8Z"/>
+                                <circle cx="9" cy="5.5" r="1"/>
+                                <circle cx="16" cy="17.5" r="1"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Theme Switcher -->
+                    <div class="header-group theme-switch" role="group" aria-label="Theme" data-i18n-aria-label="theme.label">
+                        <button id="theme-btn-daylight" class="theme-tab theme-tab-active" aria-pressed="true" title="Light theme" data-i18n-title="theme.daylight">
+                            <i class="fa-solid fa-sun"></i>
+                        </button>
+                        <button id="theme-btn-night" class="theme-tab" aria-pressed="false" title="Dark theme" data-i18n-title="theme.night">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="header-group">
+                        <select id="language-select" aria-label="Language" data-i18n-aria-label="language.label" class="header-select header-select-lang">
+                            <option value="en">EN</option>
+                            <option value="pt-PT">PT</option>
+                        </select>
+                    </div>
+
+                    <!-- Gamepad status: discreet icon -->
+                    <button id="gamepad-status-icon" class="gamepad-icon" aria-label="No gamepad connected" data-i18n-aria-label="gamepad.none" title="No gamepad connected" data-i18n-title="gamepad.none">
                         <i class="fa-solid fa-gamepad"></i>
-                        <span data-i18n="mode.manual">Manual</span>
                     </button>
-                    <button id="mode-btn-python" class="mode-tab" aria-pressed="false">
-                        <i class="fa-brands fa-python"></i>
-                        <span data-i18n="mode.python">Python Code</span>
-                    </button>
-                </div>
-
-                <div class="lab-hide mobile-hide glass-panel theme-switch px-2 py-1.5 rounded-xl flex items-center gap-1 shadow-lg" role="group" aria-label="Theme" data-i18n-aria-label="theme.label">
-                    <button id="theme-btn-daylight" class="theme-tab theme-tab-active" aria-pressed="true">
-                        <i class="fa-solid fa-sun"></i>
-                        <span data-i18n="theme.daylight">Light</span>
-                    </button>
-                    <button id="theme-btn-night" class="theme-tab" aria-pressed="false">
-                        <i class="fa-solid fa-moon"></i>
-                        <span data-i18n="theme.night">Dark</span>
-                    </button>
-                </div>
-
-                <div class="glass-panel px-2.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
-                    <i class="fa-solid fa-globe text-xs theme-accent-text"></i>
-                    <select id="language-select" aria-label="Language" data-i18n-aria-label="language.label" class="sub-card theme-accent-text text-xs font-semibold rounded-lg px-2 py-1 focus:outline-none cursor-pointer max-w-[130px]">
-                        <option value="en">English</option>
-                        <option value="pt-PT">Português (PT)</option>
-                    </select>
-                </div>
-
-                <div id="gamepad-status-badge" class="lab-hide mobile-hide glass-panel px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-xl transition-all">
-                    <span id="gamepad-dot" class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
-                    <span id="gamepad-text" data-i18n="gamepad.none" class="text-xs font-semibold tracking-wider uppercase theme-muted-text">No Gamepad Connected</span>
                 </div>
             </div>
         </header>
@@ -99,8 +105,11 @@
                 <!-- Telemetry column -->
                 <div class="fpv-dock-col fpv-telemetry">
                     <div class="fpv-dock-header">
-                        <i class="fa-solid fa-gauge-high"></i>
-                        <span data-i18n="telemetry.short">Telemetry</span>
+                        <span class="fpv-dock-title">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span data-i18n="telemetry.short">Telemetry</span>
+                        </span>
+                        <span id="flight-mode" data-i18n="status.mode2AltHold" class="fpv-flight-mode">MODE 2 / ALT HOLD</span>
                     </div>
                     <div class="fpv-dock-body">
                         <div class="fpv-readout">

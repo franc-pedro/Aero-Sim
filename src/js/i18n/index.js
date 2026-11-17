@@ -2,8 +2,8 @@ import en from './en.js';
 import ptPT from './pt-PT.js';
 
 export const LOCALES = [
-    { id: 'en', label: 'English' },
-    { id: 'pt-PT', label: 'Português (PT)' },
+    { id: 'en', label: 'EN' },
+    { id: 'pt-PT', label: 'PT' },
 ];
 
 const CATALOGS = {

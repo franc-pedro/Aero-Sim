@@ -12,21 +12,20 @@ function applyDeadzone(value) {
 
 // --- Gamepad Status UI Updater ---
 export function updateGamepadUI(connected, name = '') {
-    const dot = document.getElementById('gamepad-dot');
-    const text = document.getElementById('gamepad-text');
+    const icon = document.getElementById('gamepad-status-icon');
     document.body.classList.toggle('gamepad-connected', Boolean(connected));
-    if (!dot || !text) return;
+    if (!icon) return;
 
     if (connected) {
-        dot.className = 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]';
-        text.textContent = name
+        const label = name
             ? t('gamepad.connectedWithName', { name: name.slice(0, 24) })
             : t('gamepad.connected');
-        text.className = 'text-xs font-semibold tracking-wider uppercase text-emerald-600 dark:text-emerald-300';
+        icon.setAttribute('aria-label', label);
+        icon.setAttribute('title', label);
     } else {
-        dot.className = 'w-3 h-3 rounded-full bg-rose-500 animate-pulse';
-        text.textContent = t('gamepad.none');
-        text.className = 'text-xs font-semibold tracking-wider uppercase theme-muted-text';
+        const label = t('gamepad.none');
+        icon.setAttribute('aria-label', label);
+        icon.setAttribute('title', label);
     }
 }
 
