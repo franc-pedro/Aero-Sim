@@ -41,7 +41,7 @@ Este projeto inclui bibliotecas de terceiros distribuídas localmente no build.
 
 - Licença: MIT
 - Website: https://github.com/damiafuentes/DJITelloPy
-- O ficheiro `src/py/djitellopy.py` é um shim original para o simulador, não uma cópia da biblioteca. Mantém os nomes e o contrato do subconjunto da API pública para que o código dos alunos possa ser reutilizado num Tello real.
+- O ficheiro `src/py/djitellopy.py` é um shim original para o simulador, não uma cópia da biblioteca. Mantém os nomes do subconjunto da API pública para que o código  possa ser reutilizado num Tello real.
 
 ## Vite 7.3.8
 
