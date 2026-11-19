@@ -1,3 +1,5 @@
+[🇬🇧 English](README.en.md) | [🇵🇹 Português](README.md)
+
 # AERO-SIM
 
 Simulador de voo de um quadcopter para treino manual e para aprender programação com Python.

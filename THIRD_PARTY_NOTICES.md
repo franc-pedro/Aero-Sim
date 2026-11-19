@@ -1,3 +1,5 @@
+[🇬🇧 English](THIRD_PARTY_NOTICES.en.md) | [🇵🇹 Português](THIRD_PARTY_NOTICES.md)
+
 # Third-Party Notices
 
 Este projeto inclui bibliotecas de terceiros distribuídas localmente no build.

@@ -1,3 +1,5 @@
+[🇬🇧 English](python-lab.en.md) | [🇵🇹 Português](python-lab.md)
+
 # Guia do Professor — Laboratório Python
 
 Este guia acompanha o **AERO-SIM 1.10.1** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
