@@ -41,6 +41,9 @@ export default {
     'gamepad.connected': 'Gamepad Connected',
     'gamepad.connectedWithName': 'Connected: {name}',
 
+    'header.hide': 'Hide header',
+    'header.show': 'Show header',
+
     'telemetry.title': 'Telemetry Data',
     'telemetry.short': 'Telemetry',
     'telemetry.altitude': 'Altitude',

@@ -19,6 +19,7 @@ import { initPythonUI, loadPythonPreset, preloadPythonRuntime, refreshPythonUI, 
 import { createQuadcopter } from './scene/quadcopter.js';
 import { configureRenderer, createAtmosphere } from './scene/atmosphere.js';
 import { refreshFlightStatus } from './ui/flight-status.js';
+import { initHeaderToggle } from './ui/header-toggle.js';
 import { initAxesBars, refreshHUD } from './ui/hud.js';
 import { initLanguageSelector } from './ui/language.js';
 import { initLevelUI, refreshLevelUI } from './ui/levels.js';
@@ -79,6 +80,7 @@ function init() {
     const session = createSession({ scene, world });
 
     initAxesBars();
+    initHeaderToggle();
     initGamepad();
     initKeyboard({ onReset: () => {
         resetTouchControls();

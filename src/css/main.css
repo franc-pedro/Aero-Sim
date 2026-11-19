@@ -954,9 +954,52 @@ body.touch-ui #touch-controls button:focus-visible {
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
+    /* Linha única junto ao fundo: stick | telemetria | reset | stick */
     body.touch-ui .touch-controls {
-        gap: 0.2rem;
-        padding-top: 0.25rem;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 0.4rem;
+        padding-top: 0;
+        padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.touch-ui .touch-sticks {
+        display: contents;
+    }
+
+    body.touch-ui #touch-stick-left {
+        order: 1;
+        margin-right: auto;
+    }
+
+    body.touch-ui .touch-hud {
+        order: 2;
+        padding: 0.3rem 0.6rem;
+        font-size: 9px;
+    }
+
+    body.touch-ui #btn-touch-reset {
+        order: 3;
+    }
+
+    body.touch-ui #touch-stick-right {
+        order: 4;
+        margin-left: auto;
+    }
+
+    body.touch-ui .touch-hud-row {
+        flex-direction: row;
+        gap: 0.55rem;
+    }
+
+    body.touch-ui .touch-hud-item {
+        min-width: 0;
+        gap: 0.3rem;
+    }
+
+    body.touch-ui .touch-mini-horizon {
+        width: 30px;
+        height: 30px;
     }
 
     body.touch-ui .touch-stick-base {
@@ -968,13 +1011,23 @@ body.touch-ui #touch-controls button:focus-visible {
     }
 
     body.touch-ui .touch-reset {
-        min-width: 46px;
-        padding: 0.4rem 0.5rem;
+        min-width: 0;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 14px;
     }
 
-    body.touch-ui .touch-hud {
-        padding: 0.25rem 0.6rem;
-        font-size: 9px;
+    body.touch-ui .touch-reset span {
+        display: none;
+    }
+}
+
+@media (max-width: 560px) and (max-height: 520px) and (orientation: landscape) {
+    /* Larguras muito justas: a telemetria cabe sem o horizonte */
+    body.touch-ui .touch-mini-horizon {
+        display: none;
     }
 }
 
@@ -1754,6 +1807,77 @@ button:focus-visible,
     font-size: 13px;
     cursor: default;
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.header-hide-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.header-hide-btn:hover {
+    color: var(--accent);
+}
+
+.header-reveal {
+    display: none;
+    position: fixed;
+    top: max(0.6rem, env(safe-area-inset-top, 0px));
+    right: max(0.6rem, env(safe-area-inset-right, 0px));
+    z-index: 35;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0.75;
+    transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.header-reveal:hover {
+    color: var(--accent);
+    opacity: 1;
+}
+
+body.touch-ui .header-hide-btn {
+    display: inline-flex;
+}
+
+body.touch-ui .app-header {
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+
+body.touch-ui.header-collapsed .app-header {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-0.4rem);
+}
+
+body.touch-ui.header-collapsed .header-reveal {
+    display: inline-flex;
+}
+
+body.python-lab-open .header-reveal {
+    display: none;
 }
 
 body.gamepad-connected .gamepad-icon {
