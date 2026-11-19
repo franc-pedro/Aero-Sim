@@ -57,10 +57,10 @@ npm run build
 O conteúdo de `dist/` pode ser servido por um servidor estático. A versão online de referência está em:
 
 ```text
-https://franc-pedro.gitlab.io/drone-sim/
+https://franc-pedro.github.io/Aero-Sim/
 ```
 
-O deploy é automático no GitLab Pages a cada push para o branch principal. O Pyodide e o CodeMirror são servidos localmente; não são necessários CDNs. O primeiro carregamento é maior (Pyodide + CodeMirror); as utilizações seguintes reutilizam a cache do browser.
+O deploy é automático no GitHub Pages a cada push para o branch principal. O Pyodide e o CodeMirror são servidos localmente; não são necessários CDNs. O primeiro carregamento é maior (Pyodide + CodeMirror); as utilizações seguintes reutilizam a cache do browser.
 
 O código dos alunos fica no `localStorage` do browser, por nível. Não é enviado para nenhum servidor.
 

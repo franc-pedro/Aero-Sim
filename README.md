@@ -4,7 +4,7 @@ Simulador de voo de um quadcopter para treino manual e para aprender programaç�
 
 **Versão atual: 1.10.1**
 
-🔗 **Aplicação online:** https://franc-pedro.gitlab.io/drone-sim/
+🔗 **Aplicação online:** https://franc-pedro.github.io/Aero-Sim/
 
 ## O que inclui
 
@@ -40,10 +40,6 @@ npm run check:i18n
 
 O build de produção é gerado em `dist/` e inclui o Pyodide localmente.
 
-## Deploy
-
-O deploy para o GitLab Pages é automático através de `.gitlab-ci.yml` a cada push para o branch principal.
-
 ## Documentação
 
 O guia pedagógico e as soluções das missões estão em [`docs/python-lab.md`](docs/python-lab.md).
@@ -57,6 +53,6 @@ Durante sua construção, ferramentas de Inteligência Artificial foram utilizad
 
 ## Licença
 
-O código do AERO-SIM é distribuído sob a **licença MIT**. Consulta [`LICENSE`](LICENSE).
+O código do AERO-SIM é distribuído sob a **licença MIT** [`LICENSE`](LICENSE).
 
-As bibliotecas de terceiros mantêm as respetivas licenças; consulta [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+As bibliotecas de terceiros mantêm as respetivas licenças; [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
