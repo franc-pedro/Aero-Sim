@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { SCENE_THEMES } from '../config/themes.js';
+import { refreshEnvironmentIntensity } from './atmosphere.js';
 
 const DEFAULT_RING_RADIUS = 4;
 const DEFAULT_RING_TUBE = 0.25;
@@ -7,11 +8,11 @@ const DEFAULT_BOUNDS = { halfSize: 180, ceiling: 150 };
 const DEFAULT_SPAWN = { x: 0, y: 1.5, z: 0, yaw: 0 };
 
 const DEFAULT_PALETTE = {
-    pillar: 0x3b82f6,
+    pillar: 0x287F47,
     hazard: 0xf43f5e,
-    tower: 0x334155,
-    ring: 0x3b82f6,
-    decor: 0x475569,
+    tower: 0x6C81B7,
+    ring: 0xF5CD30,
+    decor: 0xAA0000,
 };
 
 function validateLevel(def) {
@@ -64,6 +65,296 @@ function makeObstacleMaterials(palette) {
         }
         return cache.get(key);
     };
+}
+
+// --- City props: buildings, arches, bridges, road marks ---
+// Solid parts map onto the existing box colliders so collision handling is
+// unchanged. Windows are baked into a facade texture used as both map and
+// emissive map, so lit windows glow in the night theme without extra meshes.
+
+function makeFacadeTexture(facadeHex, windowHex, litRatio, seed) {
+    const cells = 8;
+    const cell = 24;
+    const inset = 5;
+    const size = cells * cell;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = facadeHex;
+    ctx.fillRect(0, 0, size, size);
+
+    let state = (seed >>> 0) || 1;
+    const rand = () => {
+        state = (state * 1664525 + 1013904223) >>> 0;
+        return state / 4294967296;
+    };
+
+    for (let row = 0; row < cells; row++) {
+        for (let col = 0; col < cells; col++) {
+            const lit = rand() < litRatio;
+            ctx.fillStyle = lit ? windowHex : 'rgba(8, 12, 22, 0.92)';
+            ctx.fillRect(col * cell + inset, row * cell + inset, cell - inset * 2, cell - inset * 2);
+        }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.encoding = THREE.sRGBEncoding;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    return texture;
+}
+
+function pushBoxCollider(solids, mesh, x, yCenter, z, width, height, depth, yaw = 0) {
+    const collider = {
+        shape: 'box',
+        mesh,
+        halfExtents: new THREE.Vector3(width / 2, height / 2, depth / 2),
+        yaw,
+        isDecor: true,
+        pos: new THREE.Vector3(x, yCenter, z),
+    };
+    solids.push(collider);
+    return collider;
+}
+
+function addBuilding(decor, root, solids, themeName) {
+    const width = decor.width ?? 16;
+    const depth = decor.depth ?? 16;
+    const height = decor.height ?? 30;
+    const yaw = decor.yaw ?? 0;
+    const facadeColor = new THREE.Color(decor.color ?? 0x1b2436);
+    const windowColor = decor.windowColor ?? '#7dd3fc';
+    const litRatio = decor.litRatio ?? 0.55;
+    const emissiveIntensity = themeName === 'night' ? 0.85 : 0.12;
+
+    const texture = makeFacadeTexture(
+        '#' + facadeColor.getHexString(),
+        windowColor,
+        litRatio,
+        (decor.seed ?? 7) + Math.round(width * 31 + height * 7)
+    );
+    texture.repeat.set(Math.max(2, Math.round(width / 5)), Math.max(3, Math.round(height / 6)));
+
+    const facadeMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        map: texture,
+        emissive: 0xffffff,
+        emissiveMap: texture,
+        emissiveIntensity,
+        roughness: 0.72,
+        metalness: 0.15,
+    });
+
+    const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), facadeMat);
+    body.position.set(decor.x, height / 2, decor.z);
+    body.rotation.y = yaw;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    root.add(body);
+
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x0b1220, roughness: 0.85, metalness: 0.05 });
+    const base = new THREE.Mesh(new THREE.BoxGeometry(width + 0.5, 2.2, depth + 0.5), baseMat);
+    base.position.set(decor.x, 1.1, decor.z);
+    base.rotation.y = yaw;
+    base.receiveShadow = true;
+    root.add(base);
+
+    const roofMat = new THREE.MeshStandardMaterial({
+        color: facadeColor.clone().multiplyScalar(0.5),
+        roughness: 0.85,
+        metalness: 0.1,
+    });
+    const roofCap = new THREE.Mesh(new THREE.BoxGeometry(width + 0.35, 0.45, depth + 0.35), roofMat);
+    roofCap.position.set(decor.x, height + 0.22, decor.z);
+    roofCap.rotation.y = yaw;
+    roofCap.receiveShadow = true;
+    root.add(roofCap);
+
+    let state = ((decor.seed ?? 7) + 13) >>> 0;
+    const rand = () => {
+        state = (state * 1664525 + 1013904223) >>> 0;
+        return state / 4294967296;
+    };
+    const acCount = decor.roofProps === false ? 0 : 1 + Math.floor(rand() * 2);
+    const acMat = new THREE.MeshStandardMaterial({ color: 0x2b3648, roughness: 0.6, metalness: 0.4 });
+    for (let i = 0; i < acCount; i++) {
+        const acWidth = 2 + rand() * 1.2;
+        const ac = new THREE.Mesh(new THREE.BoxGeometry(acWidth, 1.1, acWidth * 0.8), acMat);
+        const limitX = Math.max(0, width / 2 - 2.6);
+        const limitZ = Math.max(0, depth / 2 - 2.6);
+        ac.position.set(
+            decor.x + (rand() * 2 - 1) * limitX,
+            height + 0.45 + 0.55,
+            decor.z + (rand() * 2 - 1) * limitZ
+        );
+        ac.rotation.y = yaw + rand() * Math.PI;
+        ac.castShadow = true;
+        root.add(ac);
+    }
+
+    if (decor.beacon) {
+        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.4, 8), acMat);
+        mast.position.set(decor.x, height + 0.45 + 0.7, decor.z);
+        root.add(mast);
+
+        const beacon = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2, 12, 12),
+            new THREE.MeshBasicMaterial({ color: 0xff2d55 })
+        );
+        beacon.position.set(decor.x, height + 0.45 + 1.55, decor.z);
+        root.add(beacon);
+    }
+
+    pushBoxCollider(solids, body, decor.x, height / 2, decor.z, width, height, depth, yaw);
+}
+
+function addArch(decor, root, solids, movers) {
+    const span = decor.span ?? 20;
+    const height = decor.height ?? 22;
+    const thickness = decor.thickness ?? 1.6;
+    const depth = decor.depth ?? 3;
+    const yaw = decor.yaw ?? 0;
+    const color = decor.color ?? 0x1b2436;
+    const neonColor = decor.neon ?? 0x67e8f9;
+    const motion = decor.motion || null;
+    const verticalAmplitude = motion?.vertical ?? 0;
+
+    const pillarMat = new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.15 });
+
+    // The whole arch lives in one group so moving props translate as a unit.
+    const group = new THREE.Group();
+    group.position.set(decor.x, 0, decor.z);
+    group.rotation.y = yaw;
+    root.add(group);
+
+    // With vertical motion the pillars extend below ground so their base never
+    // lifts off the floor: top stays at `height`, base oscillates buried.
+    const pillarOffset = span / 2 + thickness / 2;
+    const pillarHeight = height + verticalAmplitude;
+    const pillarCenterY = (height - verticalAmplitude) / 2;
+    const colliders = [];
+
+    [-pillarOffset, pillarOffset].forEach((offset) => {
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(thickness, pillarHeight, depth), pillarMat);
+        pillar.position.set(offset, pillarCenterY, 0);
+        pillar.castShadow = true;
+        pillar.receiveShadow = true;
+        group.add(pillar);
+
+        const collider = pushBoxCollider(
+            solids,
+            pillar,
+            decor.x + offset * Math.cos(yaw),
+            pillarCenterY,
+            decor.z - offset * Math.sin(yaw),
+            thickness,
+            pillarHeight,
+            depth,
+            yaw
+        );
+        collider.localOffset = new THREE.Vector3(offset, pillarCenterY, 0);
+        colliders.push(collider);
+    });
+
+    const lintelWidth = span + thickness * 2;
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(lintelWidth, 2.2, depth), pillarMat);
+    lintel.position.set(0, height + 1.1, 0);
+    lintel.castShadow = true;
+    group.add(lintel);
+
+    const lintelCollider = pushBoxCollider(solids, lintel, decor.x, height + 1.1, decor.z, lintelWidth, 2.2, depth, yaw);
+    lintelCollider.localOffset = new THREE.Vector3(0, height + 1.1, 0);
+    colliders.push(lintelCollider);
+
+    const neon = new THREE.Mesh(
+        new THREE.BoxGeometry(span, 0.12, 0.12),
+        new THREE.MeshBasicMaterial({ color: neonColor })
+    );
+    neon.position.set(0, height - 0.3, 0);
+    group.add(neon);
+
+    if (motion && (verticalAmplitude || motion.lateral)) {
+        movers.push({
+            group,
+            colliders,
+            baseX: decor.x,
+            baseZ: decor.z,
+            yaw,
+            vertical: verticalAmplitude,
+            lateral: motion.lateral ?? 0,
+            period: motion.period ?? 10,
+            phase: motion.phase ?? 0,
+            time: 0,
+        });
+    }
+}
+
+function addBridge(decor, root, solids) {
+    const length = decor.length ?? 64;
+    const width = decor.width ?? 5;
+    const deckHeight = decor.height ?? 2.6;
+    const y = decor.y ?? 13;
+    const yaw = decor.yaw ?? 0;
+    const neonColor = decor.neon ?? 0x67e8f9;
+
+    const deckMat = new THREE.MeshStandardMaterial({ color: 0x243044, roughness: 0.68, metalness: 0.2 });
+
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(length, deckHeight, width), deckMat);
+    deck.position.set(decor.x, y, decor.z);
+    deck.rotation.y = yaw;
+    deck.castShadow = true;
+    root.add(deck);
+    pushBoxCollider(solids, deck, decor.x, y, decor.z, length, deckHeight, width, yaw);
+
+    [-1, 1].forEach((side) => {
+        const railing = new THREE.Mesh(
+            new THREE.BoxGeometry(length, 0.85, 0.25),
+            new THREE.MeshStandardMaterial({ color: 0x2e3b52, roughness: 0.6, metalness: 0.3 })
+        );
+        railing.position.set(decor.x, y + deckHeight / 2 + 0.4, decor.z);
+        railing.rotation.y = yaw;
+        railing.translateZ(side * (width / 2 - 0.12));
+        railing.castShadow = true;
+        root.add(railing);
+
+        const neonEdge = new THREE.Mesh(
+            new THREE.BoxGeometry(length, 0.08, 0.06),
+            new THREE.MeshBasicMaterial({ color: neonColor })
+        );
+        neonEdge.position.set(decor.x, y + deckHeight / 2 + 0.05, decor.z);
+        neonEdge.rotation.y = yaw;
+        neonEdge.translateZ(side * (width / 2 + 0.03));
+        root.add(neonEdge);
+    });
+}
+
+function addRoadmark(decor, root) {
+    const length = decor.length ?? 60;
+    const dash = 2.2;
+    const gap = 3;
+    const yaw = decor.yaw ?? 0;
+    const count = Math.floor(length / (dash + gap));
+
+    const material = new THREE.MeshBasicMaterial({
+        color: decor.color ?? 0x67e8f9,
+        transparent: true,
+        opacity: 0.7,
+    });
+
+    for (let i = 0; i < count; i++) {
+        const offset = -length / 2 + dash / 2 + i * (dash + gap);
+        const dashX = decor.x + offset * Math.sin(yaw);
+        const dashZ = decor.z + offset * Math.cos(yaw);
+
+        const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.16, dash), material);
+        mark.rotation.x = -Math.PI / 2;
+        mark.rotation.z = -yaw;
+        mark.position.set(dashX, 0.08, dashZ);
+        root.add(mark);
+    }
 }
 
 export function buildLevel(def, scene, themeName = 'daylight') {
@@ -143,6 +434,7 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     const getObstacleMaterial = makeObstacleMaterials(palette);
     const obstacles = [];
     const solids = [];
+    const movers = [];
 
     (def.obstacles || []).forEach((obstacle) => {
         const radius = obstacle.radius ?? 2;
@@ -170,8 +462,11 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     });
 
     // Rings and gates
+    const ringDefs = def.rings || [];
     const ringColor = new THREE.Color(palette.ring).lerp(new THREE.Color(0x94a3b8), 0.3);
-    const ringMat = new THREE.MeshStandardMaterial({
+    const endColor = new THREE.Color(palette.accent ?? 0x38bdf8); // Choose your target gradient color
+
+    const baseRingMat = new THREE.MeshStandardMaterial({
         color: ringColor,
         emissive: ringColor,
         emissiveIntensity: 0.08,
@@ -181,10 +476,20 @@ export function buildLevel(def, scene, themeName = 'daylight') {
     const rings = [];
     const gates = [];
 
-    (def.rings || []).forEach((ringDef, index) => {
+    ringDefs.forEach((ringDef, index) => {
         const radius = ringDef.radius ?? DEFAULT_RING_RADIUS;
         const tube = ringDef.tube ?? DEFAULT_RING_TUBE;
         const geometry = new THREE.TorusGeometry(radius, tube, 16, 50);
+
+        // Calculate gradient step (0.0 at first ring -> 1.0 at last ring)
+        const t = ringDefs.length > 1 ? index / (ringDefs.length - 1) : 0;
+        const stepColor = ringColor.clone().lerpHSL(endColor, t); // Or use .lerp(endColor, t)
+
+        // Clone base material and apply the gradient color to both color and emissive
+        const ringMat = baseRingMat.clone();
+        ringMat.color.copy(stepColor);
+        ringMat.emissive.copy(stepColor);
+
         const mesh = new THREE.Mesh(geometry, ringMat);
 
         mesh.position.set(ringDef.x, ringDef.y, ringDef.z);
@@ -207,10 +512,30 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         if (collider.isGate) gates.push(collider);
     });
 
+    // City props (buildings, arches, bridges, road marks) have their own
+    // composite builders above.
+    const CITY_DECOR_TYPES = new Set(['building', 'arch', 'bridge', 'roadmark']);
+    (def.decor || []).filter((decor) => CITY_DECOR_TYPES.has(decor.type)).forEach((decor) => {
+        switch (decor.type) {
+            case 'building':
+                addBuilding(decor, root, solids, themeName);
+                break;
+            case 'arch':
+                addArch(decor, root, solids, movers);
+                break;
+            case 'bridge':
+                addBridge(decor, root, solids);
+                break;
+            case 'roadmark':
+                addRoadmark(decor, root);
+                break;
+        }
+    });
+
     // Decorative structures are solid by default so new level props cannot be
     // flown through. Set `solid: false` only for a deliberately non-solid
     // backdrop.
-    (def.decor || []).forEach((decor) => {
+    (def.decor || []).filter((decor) => !CITY_DECOR_TYPES.has(decor.type)).forEach((decor) => {
         let geometry;
         let collider;
         const y = decor.y ?? 0;
@@ -261,10 +586,13 @@ export function buildLevel(def, scene, themeName = 'daylight') {
         }
     });
 
+    refreshEnvironmentIntensity(scene);
+
     return {
         def,
         root,
         groundMesh,
+        movers,
         gridHelper,
         obstacles,
         solids,

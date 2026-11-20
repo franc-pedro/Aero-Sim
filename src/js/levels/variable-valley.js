@@ -23,9 +23,9 @@ export const variableValley = {
     palette: {
         pillar: 0x14b8a6,
         hazard: 0xf43f5e,
-        tower: 0x334155,
-        ring: 0x6366f1,
-        decor: 0x475569,
+        tower: 0xAA0000,
+        ring: 0x1C398E,
+        decor: 0xFFAA00,
     },
     obstacles: [
         { x: -14, z: 8, radius: 2, height: 9, kind: 'tower' },

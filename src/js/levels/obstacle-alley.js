@@ -23,9 +23,9 @@ export const obstacleAlley = {
     palette: {
         pillar: 0xf97316,
         hazard: 0xf43f5e,
-        tower: 0x334155,
-        ring: 0xf59e0b,
-        decor: 0x475569,
+        tower: 0xFFDF20,
+        ring: 0xF4BB44,
+        decor: 0xC11007,
     },
     obstacles: [
         { x: 6, z: 7.5, radius: 1.2, height: 10, kind: 'tower' },

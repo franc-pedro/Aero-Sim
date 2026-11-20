@@ -6,6 +6,7 @@ import { applyTouchControls } from '../controls/touch.js';
 import { runPythonStep } from '../python/autopilot.js';
 import { abortTelloCommand, TelloCommandError } from '../python/commands.js';
 import { detectCollision, resolveCollision } from './collision.js';
+import { stepMovers } from './movers.js';
 import { GROUND_HEIGHT } from './constants.js';
 import { checkGateCrossings } from './gates.js';
 
@@ -71,6 +72,10 @@ export function capturePreviousState() {
 
 // --- Fixed-Step Flight Simulation ---
 export function stepPhysics(dt, world) {
+    // Moving level props first, so this step's collision test sees them at
+    // their current position.
+    stepMovers(dt, world);
+
     if (droneState.flight.status === 'crashed') {
         abortTelloCommand(new TelloCommandError('The drone crashed.', 'crashed'));
         stepCrashed(dt, world);

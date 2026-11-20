@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 const SHADOW_MAP_DESKTOP = 2048;
 const SHADOW_MAP_MOBILE = 1024;
@@ -32,7 +33,44 @@ export function configureRenderer(renderer) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+}
+
+// Image-based lighting: neutral indoor environment baked once via PMREM and
+// shared as scene.environment. Gives MeshStandard/Physical materials real
+// reflections instead of relying purely on the analytic lights.
+let environmentTexture = null;
+let environmentIntensity = 1;
+
+export function applyEnvironmentLighting(scene, renderer) {
+    if (!environmentTexture) {
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        environmentTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+        pmrem.dispose();
+    }
+    scene.environment = environmentTexture;
+}
+
+function forEachMaterial(root, fn) {
+    root.traverse((obj) => {
+        if (!obj.material) return;
+        (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach(fn);
+    });
+}
+
+export function setEnvironmentIntensity(root, intensity) {
+    environmentIntensity = intensity;
+    forEachMaterial(root, (mat) => {
+        if ('envMapIntensity' in mat) mat.envMapIntensity = intensity;
+    });
+}
+
+// Re-apply the remembered intensity to meshes built after the last theme
+// application (e.g. a level loaded mid-session).
+export function refreshEnvironmentIntensity(root) {
+    forEachMaterial(root, (mat) => {
+        if ('envMapIntensity' in mat) mat.envMapIntensity = environmentIntensity;
+    });
 }
 
 export function createAtmosphere(scene, theme) {

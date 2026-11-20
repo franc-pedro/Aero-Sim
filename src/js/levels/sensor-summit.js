@@ -23,9 +23,9 @@ export const sensorSummit = {
     palette: {
         pillar: 0x8b5cf6,
         hazard: 0xf43f5e,
-        tower: 0x1e293b,
-        ring: 0x14b8a6,
-        decor: 0x334155,
+        tower: 0xD9856C,
+        ring: 0xF4BB44,
+        decor: 0x877C90,
     },
     obstacles: [
         { x: -12, z: 8, radius: 2, height: 22, kind: 'tower' },

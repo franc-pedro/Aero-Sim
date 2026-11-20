@@ -20,13 +20,13 @@ export const loopLagoon = {
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
     ground: { size: 80, divisions: 32 },
-    landingPad: { radius: 2.5, color: 0x10b981 },
+    landingPad: { radius: 2.5, color: 0x7E2A0C },
     palette: {
-        pillar: 0x3b82f6,
+        pillar: 0xA3044C,
         hazard: 0xf43f5e,
-        tower: 0x334155,
-        ring: 0xf59e0b,
-        decor: 0x475569,
+        tower: 0x432DD7,
+        ring: 0xE7180B,
+        decor: 0xE7180B,
     },
     obstacles: [
         { x: -13, z: 6, radius: 1.4, height: 9, kind: 'tower' },

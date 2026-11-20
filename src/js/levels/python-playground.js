@@ -35,9 +35,9 @@ export const pythonPlayground = {
     palette: {
         pillar: 0x3b82f6,
         hazard: 0xf43f5e,
-        tower: 0x334155,
-        ring: 0x3b82f6,
-        decor: 0x475569,
+        tower: 0xD7A94B,
+        ring: 0xFFBF00,
+        decor: 0xD22B2B,
     },
     obstacles: [
         { x: -14, z: 8, radius: 2, height: 8, kind: 'tower' },

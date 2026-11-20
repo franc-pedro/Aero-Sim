@@ -24,7 +24,7 @@ export const conditionalCanyon = {
         pillar: 0xf59e0b,
         hazard: 0xf43f5e,
         tower: 0x7c2d12,
-        ring: 0x38bdf8,
+        ring: 0xF4BB44,
         decor: 0x92400e,
     },
     obstacles: [

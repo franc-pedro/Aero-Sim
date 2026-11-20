@@ -40,7 +40,7 @@ function generateObstacles() {
             z,
             radius,
             height,
-            kind: i % 5 === 0 ? 'hazard' : 'pillar',
+            kind: i % 3 === 0 ? 'decor' : 'pillar',
         });
     }
 

@@ -1,12 +1,12 @@
 // Visual Themes (CSS + 3D Scene Atmosphere)
 export const SCENE_THEMES = {
     daylight: {
-        sky: 0xd7e8f7,
+        sky: 0x74D4FF,
         fog: 0xe9f2fb,
         fogDensity: 0.0038,
         ambientIntensity: 0.46,
         hemiSky: 0xffffff,
-        hemiGround: 0xc8d3e2,
+        hemiGround: 0xD6D3D1,
         hemiIntensity: 0.62,
         dirColor: 0xfff2df,
         dirIntensity: 1.35,
@@ -16,7 +16,8 @@ export const SCENE_THEMES = {
         rimIntensity: 0.26,
         droneShadowOpacity: 0.26,
         toneMappingExposure: 1.05,
-        groundColor: 0xe9eef5,
+        envIntensity: 0.8,
+        groundColor: 0x292524,
         gridMain: 0x8fa5bd,
         gridSub: 0xd3e0ec,
         gridOpacity: 0.62,
@@ -37,6 +38,7 @@ export const SCENE_THEMES = {
         rimIntensity: 0.3,
         droneShadowOpacity: 0.2,
         toneMappingExposure: 1.0,
+        envIntensity: 0.35,
         groundColor: 0x1a2434,
         gridMain: 0x5b6c82,
         gridSub: 0x263346,

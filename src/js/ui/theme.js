@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { SCENE_THEMES } from '../config/themes.js';
-import { applyAtmosphere } from '../scene/atmosphere.js';
+import { applyAtmosphere, setEnvironmentIntensity } from '../scene/atmosphere.js';
 
 export function applyTheme(themeName, world) {
     const cfg = SCENE_THEMES[themeName] || SCENE_THEMES.daylight;
@@ -21,6 +21,9 @@ export function applyTheme(themeName, world) {
     }
     if (world.atmosphere) {
         applyAtmosphere(cfg, world.atmosphere, world.renderer);
+    }
+    if (world.scene) {
+        setEnvironmentIntensity(world.scene, cfg.envIntensity ?? 1);
     }
     if (world.groundMesh) {
         world.groundMesh.material.color.setHex(cfg.groundColor);

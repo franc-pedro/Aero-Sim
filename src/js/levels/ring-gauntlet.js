@@ -44,7 +44,7 @@ export const ringGauntlet = {
         pillar: 0x7c3aed,
         hazard: 0xf97316,
         tower: 0x475569,
-        ring: 0xf59e0b,
+        ring: 0xF4BB44,
         decor: 0x334155,
     },
     obstacles: [

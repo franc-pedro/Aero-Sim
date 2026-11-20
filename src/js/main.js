@@ -17,7 +17,7 @@ import { initI18n, onLocaleChange } from './i18n/index.js';
 import { DEFAULT_LEVEL_ID, getLevelForPreset } from './levels/index.js';
 import { initPythonUI, loadPythonPreset, preloadPythonRuntime, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
 import { createQuadcopter } from './scene/quadcopter.js';
-import { configureRenderer, createAtmosphere } from './scene/atmosphere.js';
+import { configureRenderer, createAtmosphere, applyEnvironmentLighting, setEnvironmentIntensity } from './scene/atmosphere.js';
 import { refreshFlightStatus } from './ui/flight-status.js';
 import { initHeaderToggle } from './ui/header-toggle.js';
 import { initAxesBars, refreshHUD } from './ui/hud.js';
@@ -105,6 +105,10 @@ function init() {
     setPythonLevel(document.getElementById('level-select').value);
     drone.group.position.copy(droneState.renderPos);
     drone.group.quaternion.copy(droneState.renderQuaternion);
+
+    // Image-based lighting (after level build so all meshes get the theme intensity)
+    applyEnvironmentLighting(scene, renderer);
+    setEnvironmentIntensity(scene, defaultTheme.envIntensity ?? 1);
 
     function refreshLocalizedUI() {
         const def = session.getCurrent()?.def;

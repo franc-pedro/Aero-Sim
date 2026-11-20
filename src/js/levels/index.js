@@ -8,6 +8,8 @@ import { trainingCourse } from './training-course.js';
 import { variableValley } from './variable-valley.js';
 import { conditionalCanyon } from './conditional-canyon.js';
 import { sensorSummit } from './sensor-summit.js';
+import { neonSkyline } from './neon-skyline.js';
+import { neonSkylineMotion } from './neon-skyline-motion.js';
 
 export const LEVELS = [
     pythonPlayground,
@@ -19,6 +21,8 @@ export const LEVELS = [
     sensorSummit,
     trainingCourse,
     ringGauntlet,
+    neonSkyline,
+    neonSkylineMotion,
 ].sort((a, b) => a.order - b.order);
 export const DEFAULT_LEVEL_ID = LEVELS[0].id;
 

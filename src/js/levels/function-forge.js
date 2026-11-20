@@ -29,9 +29,9 @@ export const functionForge = {
     palette: {
         pillar: 0x6366f1,
         hazard: 0xf43f5e,
-        tower: 0x1e293b,
-        ring: 0x60a5fa,
-        decor: 0x334155,
+        tower: 0x1189A7,
+        ring: 0x691745,
+        decor: 0xA77A11,
     },
     obstacles: [
         { x: -13, z: 6, radius: 1.4, height: 18, kind: 'tower' },
