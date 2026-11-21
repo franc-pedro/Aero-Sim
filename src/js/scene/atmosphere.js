@@ -123,7 +123,7 @@ export function createAtmosphere(scene, theme) {
         })
     );
     droneShadow.rotation.x = -Math.PI / 2;
-    droneShadow.position.set(0, 0.09, 0);
+    droneShadow.position.set(0, 0.03, 0);
     droneShadow.material.userData.baseOpacity = theme.droneShadowOpacity ?? 0.24;
     scene.add(droneShadow);
 
@@ -178,12 +178,14 @@ export function updateDroneShadow(atmosphere, renderPos) {
     const mesh = atmosphere.droneShadow;
     if (!mesh) return;
 
-    mesh.position.set(renderPos.x, 0.09, renderPos.z);
+    mesh.position.set(renderPos.x, 0.03, renderPos.z);
 
+    // Sized for the true-scale Tello: honest shadow near the ground, growing
+    // into a soft marker blob at altitude so the drone stays findable.
     const altitude = Math.max(0, renderPos.y);
-    const scale = Math.min(2.1, 0.78 + altitude * 0.03);
+    const scale = Math.min(0.8, 0.12 + altitude * 0.025);
     mesh.scale.set(scale, scale, 1);
 
-    const opacity = Math.max(0.05, (atmosphere.droneShadow.material.userData.baseOpacity ?? 0.24) - altitude * 0.004);
+    const opacity = Math.max(0.05, (atmosphere.droneShadow.material.userData.baseOpacity ?? 0.24) - altitude * 0.006);
     mesh.material.opacity = opacity;
 }

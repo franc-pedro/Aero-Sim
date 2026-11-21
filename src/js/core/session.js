@@ -2,7 +2,9 @@ import { DEFAULT_LEVEL_ID, getLevel, getLevelText } from '../levels/index.js';
 import { stopPythonAutopilot } from '../python/autopilot.js';
 import { resetTelloCommandState } from '../python/commands.js';
 import { resetMission, setMissionLevel } from '../python/mission.js';
+import { setMissionPads } from '../python/mission-pads.js';
 import { buildLevel, disposeLevel } from '../scene/level-builder.js';
+import { resetGateFx } from '../scene/gate-fx.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
 import { refreshFlightStatus } from '../ui/flight-status.js';
 import { setLevelInfo } from '../ui/levels.js';
@@ -44,6 +46,9 @@ export function createSession({ scene, world }) {
             current.gates.forEach((gate) => {
                 gate.passed = false;
             });
+            // Re-open every gate visually: crossed rings return to their
+            // authored colour.
+            resetGateFx(current.gates);
         }
     }
 
@@ -68,6 +73,7 @@ export function createSession({ scene, world }) {
         applyTheme(themeName, world);
         resetDrone(getSpawnForMode(), { silent: true });
         setMissionLevel(def);
+        setMissionPads(def);
 
         refreshFlightStatus();
         setLevelInfo(def);

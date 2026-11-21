@@ -291,6 +291,48 @@ export const TELLO_API_GROUPS = [
         ],
     },
     {
+        id: 'mission-pads',
+        label: { en: 'Mission pads', pt: 'Mission pads' },
+        methods: [
+            {
+                name: 'get_mission_pad_id',
+                signature: 'get_mission_pad_id()',
+                description: {
+                    en: 'Return the id of the numbered pad under the drone (1 = helipad, 2 = mission pad), or -1 when no pad is seen.',
+                    pt: 'Devolve o id do pad numerado por baixo do drone (1 = helipado, 2 = pad de missão), ou -1 quando não vê nenhum.',
+                },
+                example: 'print(tello.get_mission_pad_id())',
+            },
+            {
+                name: 'get_mission_pad_distance_x',
+                signature: 'get_mission_pad_distance_x()',
+                description: {
+                    en: 'Return the signed horizontal offset from the detected pad, east-west, in centimetres.',
+                    pt: 'Devolve o desvio horizontal assinado ao pad detetado, este-oeste, em centímetros.',
+                },
+                example: 'print(tello.get_mission_pad_distance_x())',
+            },
+            {
+                name: 'get_mission_pad_distance_y',
+                signature: 'get_mission_pad_distance_y()',
+                description: {
+                    en: 'Return the altitude above the detected pad in centimetres.',
+                    pt: 'Devolve a altitude acima do pad detetado em centímetros.',
+                },
+                example: 'print(tello.get_mission_pad_distance_y())',
+            },
+            {
+                name: 'get_mission_pad_distance_z',
+                signature: 'get_mission_pad_distance_z()',
+                description: {
+                    en: 'Return the signed horizontal offset from the detected pad, north-south, in centimetres.',
+                    pt: 'Devolve o desvio horizontal assinado ao pad detetado, norte-sul, em centímetros.',
+                },
+                example: 'print(tello.get_mission_pad_distance_z())',
+            },
+        ],
+    },
+    {
         id: 'python',
         label: { en: 'Python helpers', pt: 'Ajudantes Python' },
         methods: [

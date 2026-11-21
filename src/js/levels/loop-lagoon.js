@@ -20,7 +20,9 @@ export const loopLagoon = {
     spawn,
     bounds: { halfSize: 30, ceiling: 30 },
     ground: { size: 80, divisions: 32 },
-    landingPad: { radius: 2.5, color: 0x7E2A0C },
+    // Metric test pavilion: ruled walls/floor, height rulers and a marked helipad.
+    environment: { type: 'pavilion' },
+    landingPad: { radius: 2.5, color: 0x7E2A0C, helipad: true },
     palette: {
         pillar: 0xA3044C,
         hazard: 0xf43f5e,

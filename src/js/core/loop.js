@@ -4,6 +4,8 @@ import { updateHUD } from '../ui/hud.js';
 import { notifyCrash, refreshFlightStatus } from '../ui/flight-status.js';
 import { addCameraShake, updateCamera } from '../simulation/camera.js';
 import { updateDroneShadow } from '../scene/atmosphere.js';
+import { updateTrail } from '../scene/trail.js';
+import { updateGateFx } from '../scene/gate-fx.js';
 import { updateMission } from '../python/mission.js';
 import {
     capturePreviousState,
@@ -145,9 +147,11 @@ export function startLoop({ scene, camera, renderer, world }) {
         const alpha = Math.min(accumulator / FIXED_DT, 1);
         updateRenderTransforms(alpha, world);
         updatePropellers(frameDt, world);
-        updateCamera(camera, frameDt);
+        updateCamera(camera, frameDt, world);
         updateSunShadow();
         updateDroneShadow(world.atmosphere, droneState.renderPos);
+        updateTrail(droneState.renderPos);
+        updateGateFx(frameDt);
         updateHUD(frameDt);
 
         renderer.render(scene, camera);

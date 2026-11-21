@@ -1,27 +1,46 @@
 import * as THREE from 'three';
 import { droneState } from '../core/state.js';
 
+// --- Camera modes: chase (default), orbit (OrbitControls), FPV ---
+
+export const CAMERA_MODES = ['chase', 'orbit', 'fpv'];
+
 // --- Smooth Chase Camera ---
-const CAMERA_OFFSET = new THREE.Vector3(0, 2.5, -6);
-const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);
+// Offsets are sized for the true-scale Tello (~10 cm body): tight follow so
+// the drone keeps a comfortable share of the screen.
+const CAMERA_OFFSET = new THREE.Vector3(0, 0.35, -0.8);
+const LOOK_OFFSET = new THREE.Vector3(0, 0.08, 0);
+
+// --- FPV Camera ---
+// Mounted just ahead of the front lens (the lens sits at ~6.4 cm from the
+// centre): past the glass, so the body never blocks the view.
+const FPV_OFFSET = new THREE.Vector3(0, -0.012, 0.075);
+// The camera looks along its local -Z; the drone flies along +Z.
+const LOOK_BACK_YAW = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
 const POSITION_LAMBDA = 8.5;   // Position spring response (1/s)
 const LOOK_LAMBDA = 10.0;      // Look-target spring response (1/s)
 const YAW_LAMBDA = 9.0;        // Orbit yaw response (1/s)
 const VELOCITY_LEAD = 0.035;  // Camera position look-ahead (seconds)
 const LOOK_LEAD = 0.03;        // Look-target look-ahead (seconds)
+const ORBIT_FOLLOW_LAMBDA = 4; // Orbit target follow response (1/s)
 
 const _offset = new THREE.Vector3();
 const _targetPos = new THREE.Vector3();
 const _targetLook = new THREE.Vector3();
 const _yawQuat = new THREE.Quaternion();
 const _upAxis = new THREE.Vector3(0, 1, 0);
+const _fpvOffset = new THREE.Vector3();
 
 const rigPos = new THREE.Vector3();
 const rigLook = new THREE.Vector3();
 let rigYaw = 0;
 let rigInitialized = false;
 let shakeAmount = 0;
+
+let cameraMode = 'chase';
+let orbitControls = null;
+const orbitFollowPos = new THREE.Vector3();
 
 function dampFactor(lambda, dt) {
     return 1 - Math.exp(-lambda * Math.max(0, dt));
@@ -40,7 +59,42 @@ export function clearCameraShake() {
     shakeAmount = 0;
 }
 
-export function updateCamera(camera, dt) {
+// Called once from main.js after the OrbitControls instance is created.
+export function setOrbitControls(controls) {
+    orbitControls = controls;
+    if (controls) controls.enabled = cameraMode === 'orbit';
+}
+
+export function getCameraMode() {
+    return cameraMode;
+}
+
+export function setCameraMode(mode) {
+    if (!CAMERA_MODES.includes(mode) || mode === cameraMode) return;
+
+    const previous = cameraMode;
+    cameraMode = mode;
+    clearCameraShake();
+
+    if (previous === 'orbit' && orbitControls) {
+        orbitControls.enabled = false;
+    }
+
+    if (mode === 'orbit' && orbitControls) {
+        // Start inspecting from the drone's current position.
+        orbitControls.target.copy(droneState.renderPos);
+        orbitFollowPos.copy(droneState.renderPos);
+        orbitControls.enabled = true;
+        orbitControls.update();
+    }
+
+    if (mode === 'chase') {
+        // Snap the chase rig to its ideal pose on the next update.
+        rigInitialized = false;
+    }
+}
+
+function updateChaseCamera(camera, dt) {
     const needsSnap = !rigInitialized || droneState.snapCamera;
 
     // Damped yaw keeps the camera behind the drone without snapping the world
@@ -86,4 +140,38 @@ export function updateCamera(camera, dt) {
     }
 
     camera.lookAt(rigLook);
+}
+
+function updateOrbitCamera(dt) {
+    if (!orbitControls) return;
+
+    // Follow the drone only while it is actually moving, so a parked drone
+    // keeps whatever target the student panned to.
+    const pos = droneState.renderPos;
+    if (pos.distanceTo(orbitFollowPos) > 0.01) {
+        orbitControls.target.lerp(pos, dampFactor(ORBIT_FOLLOW_LAMBDA, dt));
+        orbitFollowPos.copy(pos);
+    }
+
+    orbitControls.update();
+}
+
+function updateFpvCamera(camera) {
+    _fpvOffset.copy(FPV_OFFSET).applyQuaternion(droneState.renderQuaternion);
+    camera.position.copy(droneState.renderPos).add(_fpvOffset);
+    camera.quaternion.copy(droneState.renderQuaternion).multiply(LOOK_BACK_YAW);
+}
+
+export function updateCamera(camera, dt, world) {
+    if (cameraMode === 'orbit') {
+        updateOrbitCamera(dt);
+        return;
+    }
+
+    if (cameraMode === 'fpv') {
+        updateFpvCamera(camera);
+        return;
+    }
+
+    updateChaseCamera(camera, dt);
 }

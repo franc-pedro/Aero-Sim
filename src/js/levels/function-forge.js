@@ -25,7 +25,9 @@ export const functionForge = {
     spawn,
     bounds: { halfSize: 30, ceiling: 40 },
     ground: { size: 80, divisions: 32 },
-    landingPad: { radius: 2.5, color: 0x10b981 },
+    // Metric test pavilion: ruled walls/floor, height rulers and a marked helipad.
+    environment: { type: 'pavilion' },
+    landingPad: { radius: 2.5, color: 0x10b981, helipad: true },
     palette: {
         pillar: 0x6366f1,
         hazard: 0xf43f5e,

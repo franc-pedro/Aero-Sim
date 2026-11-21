@@ -4,17 +4,20 @@
 
 Simulador de voo de um quadcopter para treino manual e para aprender programação com Python.
 
-**Versão atual: 1.10.1**
+**Versão atual: 1.11.0**
 
 🔗 **Aplicação online:** https://franc-pedro.github.io/Aero-Sim/
 
 ## O que inclui
 
 - Modo Manual com teclado, gamepad e controlos de toque.
+- **Arena de testes métrica**: pavilhão com grelha de 1 m no chão e nas paredes, réguas de altura e helipado marcado com coordenadas.
+- **Três modos de câmara**: perseguição, orbital e FPV (tecla C).
+- Auxiliares de voo: indicador de frente e linha de trajetória, à escala real do Tello.
 - HUD de telemetria estilo FPV com altitude, velocidade e horizonte artificial.
-- Atmosfera com iluminação suave, sombras subtis e câmara fluida.
-- **7 missões Python** com lições, quizzes, dicas progressivas e progresso local.
-- Missões de sequência, ciclos, funções, variáveis, condições e sensores.
+- **9 missões Python** com lições, quizzes, dicas progressivas e progresso local.
+- Missões de sequência, ciclos, funções, variáveis, condições, sensores, mission pads e inspeção.
+- Sensores simulados: atitude, altura, bateria e `get_mission_pad_id()`/distâncias aos pads.
 - Interface em **English** e **Português (PT)**.
 - Temas **Claro** e **Escuro**.
 - Funciona sem backend e sem CDNs. O código e o progresso dos alunos ficam apenas no browser.

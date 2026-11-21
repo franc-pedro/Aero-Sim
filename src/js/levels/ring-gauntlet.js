@@ -1,26 +1,27 @@
+import { createRng } from './rng.js';
+
 const RING_RADIUS = 4;
 const RING_TUBE = 0.25;
 
 const spawn = { x: 0, y: 1.5, z: 0, yaw: 0 };
 
-// Gate waypoints zig-zag forward through the arena, climbing gently.
+// Gate waypoints zig-zag forward through the arena, climbing gently from
+// 200 cm to 500 cm — a real (and reachable) gauntlet at Tello scale.
 const waypoints = [
-    { x: 0, y: 8, z: 25 },
-    { x: -20, y: 10, z: 45 },
-    { x: 20, y: 12, z: 65 },
-    { x: -20, y: 14, z: 85 },
-    { x: 20, y: 16, z: 105 },
-    { x: -18, y: 19, z: 125 },
-    { x: 0, y: 22, z: 145 },
-    { x: 0, y: 26, z: 165 },
+    { x: 0, y: 2, z: 8 },
+    { x: -8, y: 2.4, z: 14 },
+    { x: 8, y: 2.8, z: 20 },
+    { x: -8, y: 3.2, z: 26 },
+    { x: 8, y: 3.6, z: 32 },
+    { x: -8, y: 4, z: 38 },
+    { x: 0, y: 4.5, z: 44 },
+    { x: 0, y: 5, z: 50 },
 ];
 
 function buildRings() {
     return waypoints.map((point, index) => {
         const previous = index === 0 ? spawn : waypoints[index - 1];
-        const directionX = point.x - previous.x;
-        const directionZ = point.z - previous.z;
-        const yaw = Math.atan2(directionX, directionZ);
+        const yaw = Math.atan2(point.x - previous.x, point.z - previous.z);
 
         return {
             ...point,
@@ -32,14 +33,49 @@ function buildRings() {
     });
 }
 
+function generateObstacles() {
+    const rng = createRng(0x9c2f7);
+    const obstacles = [];
+
+    for (let i = 0; i < 16; i++) {
+        const height = 15 + rng() * 20;
+        const radius = 1.2 + rng() * 1.2;
+        let x = 0;
+        let z = 0;
+
+        for (let attempt = 0; attempt < 100; attempt++) {
+            x = (rng() - 0.5) * 100;
+            z = (rng() - 0.5) * 100;
+
+            const nearSpawn = Math.abs(x) < 8 && Math.abs(z) < 8;
+            const nearRing = waypoints.some(
+                (point) => Math.hypot(x - point.x, z - point.z) < RING_RADIUS + 9
+            );
+            const nearWall = Math.max(Math.abs(x), Math.abs(z)) > 50;
+            if (!nearSpawn && !nearRing && !nearWall) break;
+        }
+
+        obstacles.push({
+            x,
+            z,
+            radius,
+            height,
+            kind: i % 4 === 0 ? 'hazard' : i % 4 === 1 ? 'tower' : 'pillar',
+        });
+    }
+
+    return obstacles;
+}
+
 export const ringGauntlet = {
     id: 'ring-gauntlet',
     difficulty: 'intermediate',
     order: 101,
     defaultTheme: 'night',
     spawn,
-    bounds: { halfSize: 200, ceiling: 150 },
-    ground: { size: 440, divisions: 88 },
+    bounds: { halfSize: 55, ceiling: 40 },
+    // 1 m grid cells: 120 size / 120 divisions.
+    ground: { size: 120, divisions: 120 },
     palette: {
         pillar: 0x7c3aed,
         hazard: 0xf97316,
@@ -47,22 +83,14 @@ export const ringGauntlet = {
         ring: 0xF4BB44,
         decor: 0x334155,
     },
-    obstacles: [
-        { x: -58, z: 40, radius: 3.5, height: 24, kind: 'tower' },
-        { x: 58, z: 40, radius: 3.5, height: 20, kind: 'tower' },
-        { x: -60, z: 80, radius: 3.0, height: 30, kind: 'tower' },
-        { x: 60, z: 80, radius: 4.0, height: 26, kind: 'hazard' },
-        { x: -58, z: 120, radius: 3.5, height: 22, kind: 'tower' },
-        { x: 58, z: 120, radius: 3.0, height: 32, kind: 'tower' },
-        { x: -45, z: 158, radius: 2.5, height: 18, kind: 'hazard' },
-        { x: 45, z: 158, radius: 2.5, height: 18, kind: 'hazard' },
-    ],
+    obstacles: generateObstacles(),
     rings: buildRings(),
     decor: [
-        { type: 'box', x: -210, y: 35, z: 30, width: 18, height: 70, depth: 18 },
-        { type: 'box', x: 210, y: 30, z: 30, width: 18, height: 60, depth: 18 },
-        { type: 'box', x: -210, y: 40, z: 120, width: 18, height: 80, depth: 18 },
-        { type: 'box', x: 210, y: 35, z: 120, width: 18, height: 70, depth: 18 },
+        // Monoliths framing the course (14-16 m tall at world scale).
+        { type: 'box', x: -38, y: 35, z: 15, width: 14, height: 70, depth: 14 },
+        { type: 'box', x: 38, y: 30, z: 15, width: 14, height: 60, depth: 14 },
+        { type: 'box', x: -38, y: 40, z: 42, width: 14, height: 80, depth: 14 },
+        { type: 'box', x: 38, y: 35, z: 42, width: 14, height: 70, depth: 14 },
     ],
     objectives: { type: 'gates' },
 };

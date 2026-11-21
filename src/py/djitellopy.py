@@ -170,6 +170,18 @@ class Tello:
     def get_flight_time(self):
         return self._call("get_flight_time")
 
+    def get_mission_pad_id(self):
+        return self._call("get_mission_pad_id")
+
+    def get_mission_pad_distance_x(self):
+        return self._call("get_mission_pad_distance_x")
+
+    def get_mission_pad_distance_y(self):
+        return self._call("get_mission_pad_distance_y")
+
+    def get_mission_pad_distance_z(self):
+        return self._call("get_mission_pad_distance_z")
+
     # Video is intentionally out of scope for the simulator.
     def streamon(self):
         raise NotImplementedError("Video streaming is not available in AERO-SIM.")

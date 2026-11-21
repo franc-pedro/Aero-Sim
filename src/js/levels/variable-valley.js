@@ -18,7 +18,9 @@ export const variableValley = {
     spawn,
     bounds: { halfSize: 40, ceiling: 30 },
     ground: { size: 100, divisions: 40 },
-    landingPad: { radius: 2.5, color: 0x10b981 },
+    // Metric test pavilion: ruled walls/floor, height rulers and a marked helipad.
+    environment: { type: 'pavilion' },
+    landingPad: { radius: 2.5, color: 0x10b981, helipad: true },
     missionPad,
     palette: {
         pillar: 0x14b8a6,

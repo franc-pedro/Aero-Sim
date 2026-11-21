@@ -183,4 +183,52 @@ print("Time:", tello.get_flight_time(), "s")
 
 tello.land()
 tello.end()`,
+    racing: `from djitellopy import Tello
+import time
+
+# Mission: slalom through four gates, confirm the finish pad, land on it.
+# The course runs straight ahead: gates are 800 cm apart, alternating
+# around the centre line.
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+# TODO: climb to the gate height (250 cm).
+# tello.move_up(150)
+
+# TODO: four times — move_forward(80), then steer between gates:
+# after gate 1 steer right 30, after gate 2 left 60,
+# after gate 3 right 60. Keep the offset in a variable if you like.
+
+# TODO: after the last gate, steer left 30, move forward 60,
+# and print tello.get_mission_pad_id() to confirm pad 2 before landing.
+
+tello.land()
+tello.end()`,
+    warehouse: `from djitellopy import Tello
+
+# Mission: survey aisle B, read both box codes, return to the dock.
+# Aisle B starts 3000 cm ahead; the code pads sit at its two ends.
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+
+# TODO: climb to 200 cm (the aisle gate height).
+# tello.move_up(100)
+
+# TODO: taxi 3000 cm ahead with a loop of move_forward(500).
+
+# TODO: rotate_clockwise(90), then fly 2400 cm (five move_forward(480))
+# to box code A. Print tello.get_mission_pad_id().
+
+# TODO: rotate_clockwise(180), fly 4800 cm (ten move_forward(480))
+# to box code B, and print the id.
+
+# TODO: rotate_counter_clockwise(90), taxi 3000 cm back to the dock
+# and land only when get_mission_pad_id() == 1.
+
+tello.land()
+tello.end()`,
 };

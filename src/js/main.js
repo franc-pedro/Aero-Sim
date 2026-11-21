@@ -4,6 +4,7 @@ import '@fortawesome/fontawesome-free/css/fontawesome.css';
 import '@fortawesome/fontawesome-free/css/solid.css';
 import '@fortawesome/fontawesome-free/css/brands.css';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import { SCENE_THEMES } from './config/themes.js';
 import { startLoop } from './core/loop.js';
@@ -17,6 +18,8 @@ import { initI18n, onLocaleChange } from './i18n/index.js';
 import { DEFAULT_LEVEL_ID, getLevelForPreset } from './levels/index.js';
 import { initPythonUI, loadPythonPreset, preloadPythonRuntime, refreshPythonUI, startPythonAutopilot, stopPythonAutopilot } from './python/autopilot.js';
 import { createQuadcopter } from './scene/quadcopter.js';
+import { createNoseIndicator } from './scene/nose-indicator.js';
+import { initTrail } from './scene/trail.js';
 import { configureRenderer, createAtmosphere, applyEnvironmentLighting, setEnvironmentIntensity } from './scene/atmosphere.js';
 import { refreshFlightStatus } from './ui/flight-status.js';
 import { initHeaderToggle } from './ui/header-toggle.js';
@@ -25,7 +28,10 @@ import { initLanguageSelector } from './ui/language.js';
 import { initLevelUI, refreshLevelUI } from './ui/levels.js';
 import { setControlMode } from './ui/mode.js';
 import { initPythonLab, setPythonLevel } from './ui/python-lab.js';
+import { initCameraModeUI } from './ui/camera-mode.js';
+import { initViewOptions } from './ui/view-options.js';
 import { applyTheme } from './ui/theme.js';
+import { setOrbitControls } from './simulation/camera.js';
 
 let scene;
 let camera;
@@ -53,6 +59,15 @@ function init() {
     configureRenderer(renderer);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
+    // Orbit mode rig (enabled only while the camera mode is 'orbit')
+    const orbitControls = new OrbitControls(camera, renderer.domElement);
+    orbitControls.enabled = false;
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.08;
+    orbitControls.minDistance = 0.25;
+    orbitControls.maxDistance = 80;
+    setOrbitControls(orbitControls);
+
     // 4. Lighting (Atmosphere rig: key, fill, rim, hemisphere and contact shadow)
     const atmosphere = createAtmosphere(scene, defaultTheme);
 
@@ -64,6 +79,11 @@ function init() {
     const drone = createQuadcopter();
     scene.add(drone.group);
 
+    // Visual flying aids (toggled from the header, see initViewOptions)
+    const noseIndicator = createNoseIndicator();
+    drone.group.add(noseIndicator);
+    initTrail(scene);
+
     world = {
         scene,
         camera,
@@ -74,6 +94,8 @@ function init() {
         ambientLight,
         hemiLight,
         dirLight,
+        noseIndicator,
+        orbitControls,
     };
 
     // 6. Level Session & UI
@@ -158,6 +180,9 @@ function init() {
 
     document.getElementById('theme-btn-daylight').addEventListener('click', () => applyTheme('daylight', world));
     document.getElementById('theme-btn-night').addEventListener('click', () => applyTheme('night', world));
+
+    initViewOptions({ noseIndicator });
+    initCameraModeUI({ noseIndicator });
 
     document.getElementById('python-preset-select').addEventListener('change', (e) => {
         const preset = e.target.value;

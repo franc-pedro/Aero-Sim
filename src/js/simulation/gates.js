@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { droneState } from '../core/state.js';
+import { flashGate } from '../scene/gate-fx.js';
 
 const _normal = new THREE.Vector3();
 const _prevRelative = new THREE.Vector3();
@@ -38,6 +39,7 @@ export function checkGateCrossings(prevPos, pos, world) {
         if (radial >= gate.radius - gate.tube - 0.2) continue;
 
         gate.passed = true;
+        flashGate(gate);
         droneState.objectives.gatesPassed++;
         crossed++;
     }

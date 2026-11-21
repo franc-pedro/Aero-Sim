@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SCENE_THEMES } from '../config/themes.js';
 import { applyAtmosphere, setEnvironmentIntensity } from '../scene/atmosphere.js';
+import { applyPavilionTheme } from '../scene/environment/pavilion.js';
 
 export function applyTheme(themeName, world) {
     const cfg = SCENE_THEMES[themeName] || SCENE_THEMES.daylight;
@@ -25,8 +26,15 @@ export function applyTheme(themeName, world) {
     if (world.scene) {
         setEnvironmentIntensity(world.scene, cfg.envIntensity ?? 1);
     }
+
+    // Levels with the metric pavilion carry their own grid floor texture, so
+    // the generic GridHelper is skipped and pavilion materials follow the theme.
+    const isPavilion = world.level?.def?.environment?.type === 'pavilion';
+
     if (world.groundMesh) {
-        world.groundMesh.material.color.setHex(cfg.groundColor);
+        world.groundMesh.material.color.setHex(
+            isPavilion ? (cfg.pavilionFloor ?? cfg.groundColor) : cfg.groundColor
+        );
     }
     const groundConfig = world.level?.def?.ground || {};
     const groundSize = groundConfig.size ?? 400;
@@ -39,6 +47,13 @@ export function applyTheme(themeName, world) {
         }
         world.gridHelper.geometry.dispose();
         world.gridHelper.material.dispose();
+    }
+
+    if (isPavilion) {
+        world.gridHelper = null;
+        if (world.level) world.level.gridHelper = null;
+        applyPavilionTheme(world.level?.pavilion, cfg);
+        return;
     }
 
     const gridHelper = new THREE.GridHelper(

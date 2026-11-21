@@ -2,7 +2,7 @@
 
 # Guia do Professor — Laboratório Python
 
-Este guia acompanha o **AERO-SIM 1.10.1** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
+Este guia acompanha o **AERO-SIM 1.11.0** e o modo **Python Code**. O objetivo é usar o simulador para ensinar programação com Python, drones e objetivos concretos, sem precisar de hardware real.
 
 ## 1. O que os alunos aprendem
 
@@ -30,8 +30,10 @@ A API Python é compatível com o subconjunto da **djitellopy**. O código pode 
 | Variable Valley | Variáveis e parâmetros | 3 | Verde, no fim |
 | Conditional Canyon | Condições e sensores | 3 | Verde, no fim |
 | Sensor Summit | Ciclos `while` e sensores | 3 | Verde, no fim |
+| Racing Circuit | Ciclos, condições e mission pads | 4 | Pad 2, na meta |
+| Warehouse Inspection | Padrão de inspeção com ciclos | 3 | Cais de carga (pad 1) |
 
-O nível **Training Course** e o **Ring Gauntlet** continuam disponíveis como voo livre e desafios manuais.
+Os níveis **Test Pavilion**, **Training Course** e o **Ring Gauntlet** continuam disponíveis como voo livre e desafios manuais.
 
 ## 2. Requisitos
 
@@ -531,7 +533,138 @@ Atividades:
 - fazer um slalom;
 - comparar `move_forward()` com `send_rc_control()`.
 
-## 14. Erros comuns e ajuda
+## 14. Racing Circuit — ciclos e mission pads
+
+O **Circuito de Corrida** combina tudo o que veio antes: um slalom de quatro portais num corredor de torres, dentro do pavilhão métrico. Os portais distam 800 cm entre si e alternam à direita e à esquerda da linha central; o pad 2 (verde) espera na meta, 3800 cm à frente.
+
+### Solução de referência
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+tello.move_up(150)              # altura dos portais: 250 cm
+
+for gate in range(4):
+    tello.move_forward(80)
+    if gate == 0:
+        tello.move_right(30)
+    elif gate == 1:
+        tello.move_left(60)
+    elif gate == 2:
+        tello.move_right(60)
+    # gate 3: sem correção necessária
+
+tello.move_left(30)             # centrar no corredor
+tello.move_forward(60)          # até ao pad de meta
+
+if tello.get_mission_pad_id() == 2:
+    print("Meta confirmada!")
+    tello.land()
+else:
+    print("Pad errado:", tello.get_mission_pad_id())
+
+tello.end()
+```
+
+### Dicas progressivas
+
+- Desenhar o percurso no papel antes de programar evita correções trocadas: direita 300, esquerda 600, direita 600, esquerda 300.
+- O drone mantém o rumo durante todo o percurso (nunca roda), por isso `move_right()` é sempre o mesmo lado.
+- Se o drone colidir com uma torre, corrigir o desvio com `get_mission_pad_distance_x()` ajuda a perceber onde estava.
+
+## 15. Warehouse Inspection — padrão de inspeção
+
+O **Armazém de Inspeção** é a missão capstone: quatro estantes de paletes formam os corredores A, B e C, e o drone tem de fazer um padrão de inspeção pelo corredor B — três portais, dois códigos de caixa nos extremos e regresso ao cais de carga (pad 1). É o fim de semana de teste de tudo: ciclos, rotações precisas, sensores e aterragem confirmada.
+
+### Solução de referência
+
+```python
+from djitellopy import Tello
+
+tello = Tello()
+tello.connect()
+tello.set_speed(100)
+tello.takeoff()
+tello.move_up(100)              # altura dos portais: 200 cm
+
+for _ in range(6):              # 3000 cm até à entrada do corredor B
+    tello.move_forward(500)
+
+tello.rotate_clockwise(90)      # alinhar com o corredor
+for _ in range(5):              # 2400 cm até ao código A
+    tello.move_forward(480)
+print("Código A:", tello.get_mission_pad_id())   # 2
+
+tello.rotate_clockwise(180)     # meia volta
+for _ in range(10):             # 4800 cm até ao código B
+    tello.move_forward(480)
+print("Código B:", tello.get_mission_pad_id())   # 3
+
+tello.rotate_counter_clockwise(90)   # rumo ao cais
+for _ in range(6):              # 3000 cm de regresso
+    tello.move_forward(500)
+
+if tello.get_mission_pad_id() == 1:
+    print("Em casa!")
+    tello.land()
+tello.end()
+```
+
+### Dicas progressivas
+
+- O drone nunca muda de corredor: voa sempre a 200 cm e a z = -200 cm (a linha do corredor B).
+- As rotações somam: 90 (direita) + 180 (meia volta) - 90 = rumo de regresso ao cais.
+- A aterragem só conta no pad do cais — confirmar `get_mission_pad_id() == 1` antes de `land()` é a boia de salvação da missão.
+
+## 16. Mission pads
+
+Cada nível numera os pads no chão: **1** é o helipado de descolagem (com "H") e **2** é o pad de missão (verde). A câmara para baixo do Tello deteta um pad quando o drone está a pairar por cima dele, a menos de ~1 m do centro e abaixo de 2 m de altitude. Fora dessa zona, `get_mission_pad_id()` devolve **-1**.
+
+Métodos disponíveis:
+
+| Método | Devolve |
+|---|---|
+| `get_mission_pad_id()` | id do pad detetado (número) ou `-1` |
+| `get_mission_pad_distance_x()` | desvio leste-oeste ao pad detetado, em cm (positivo = para este) |
+| `get_mission_pad_distance_y()` | altitude acima do chão, em cm |
+| `get_mission_pad_distance_z()` | desvio norte-sul ao pad detetado, em cm (positivo = para sul) |
+
+Se não houver pad detetado, os métodos de distância levantam um `TelloError` com uma dica para aproximar do pad.
+
+Exemplo — voar do helipado ao pad de missão e confirmar os ids:
+
+```python
+from djitellopy import Tello
+import time
+
+tello = Tello()
+tello.connect()
+tello.takeoff()
+time.sleep(1)
+
+print("Pad inicial:", tello.get_mission_pad_id())   # 1 (helipado)
+
+tello.move_forward(150)                              # até ao pad de missão
+time.sleep(0.5)
+print("Pad de missão:", tello.get_mission_pad_id())  # 2
+print("Desvio x:", tello.get_mission_pad_distance_x(), "cm")
+print("Altura:", tello.get_mission_pad_distance_y(), "cm")
+
+tello.land()
+tello.end()
+```
+
+Desafios:
+
+- centrar o drone sobre o pad usando `get_mission_pad_distance_x/z()` num ciclo while.
+- contar quantos pads existem no nível passando por eles.
+- usar o id num if: só aterrar quando `get_mission_pad_id() == 2`.
+
+## 17. Erros comuns e ajuda
 
 O editor marca a linha e mostra uma dica. A consola mantém o traceback completo para consulta.
 
@@ -547,7 +680,7 @@ O editor marca a linha e mostra uma dica. A consola mantém o traceback completo
 
 O botão **Stop** interrompe o script. Se o drone estiver a voar, aterra automaticamente. O **Reset Pos** repõe a missão e o drone no início.
 
-## 15. Gestão da aula
+## 18. Gestão da aula
 
 - Cada aluno pode usar o seu próprio browser; o código fica guardado nesse browser.
 - Não há contas nem envio de dados.
@@ -564,7 +697,7 @@ Se o Python não carregar:
 3. recarregar a página;
 4. verificar a consola de desenvolvimento.
 
-## 16. Avaliação sugerida
+## 19. Avaliação sugerida
 
 | Critério | Indicador |
 |---|---|
@@ -577,10 +710,10 @@ Se o Python não carregar:
 | Verificação | O aluno explica a resposta do quiz e o efeito de alterar uma variável |
 | Autonomia | O aluno consulta a API e as dicas antes de pedir solução |
 
-## 17. Limitações atuais
+## 20. Limitações atuais
 
 - Apenas a biblioteca padrão do Python está disponível.
-- Vídeo, enxames, mission pads e `control_step(state, dt)` não estão implementados.
+- Vídeo, enxames e `control_step(state, dt)` não estão implementados.
 - `input()` ainda não está disponível.
 - O Python exige um browser moderno com JSPI.
 - O simulador é local; não substitui a formação de segurança para voar um Tello real.

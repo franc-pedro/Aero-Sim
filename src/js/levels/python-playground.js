@@ -30,7 +30,9 @@ export const pythonPlayground = {
     spawn,
     bounds: { halfSize: 40, ceiling: 30 },
     ground: { size: 100, divisions: 40 },
-    landingPad: { radius: 2.5 },
+    // Metric test pavilion: ruled walls/floor, height rulers and a marked helipad.
+    environment: { type: 'pavilion' },
+    landingPad: { radius: 2.5, helipad: true },
     missionPad,
     palette: {
         pillar: 0x3b82f6,

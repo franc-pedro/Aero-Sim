@@ -3,8 +3,8 @@ import { controlState, droneState } from '../core/state.js';
 
 // The drone is approximated by a sphere large enough to include the body and
 // the fragile rotor tips. This keeps collisions predictable without per-mesh
-// raycasts.
-export const DRONE_COLLISION_RADIUS = 1.3;
+// raycasts. Sized for the true-scale Tello (see DRONE_MODEL_SCALE).
+export const DRONE_COLLISION_RADIUS = 0.13;
 
 const RESTITUTION = 0.18;
 

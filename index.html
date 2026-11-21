@@ -63,6 +63,32 @@
                         </button>
                     </div>
 
+                    <!-- View aids: nose indicator, trajectory -->
+                    <div class="header-group theme-switch" role="group" aria-label="View aids" data-i18n-aria-label="view.label">
+                        <button id="view-btn-nose" class="theme-tab theme-tab-active" aria-pressed="true" title="Nose indicator" data-i18n-title="view.nose">
+                            <i class="fa-solid fa-location-arrow"></i>
+                        </button>
+                        <button id="view-btn-trail" class="theme-tab theme-tab-active" aria-pressed="true" title="Trajectory line" data-i18n-title="view.trail">
+                            <i class="fa-solid fa-route"></i>
+                        </button>
+                        <button id="view-btn-trail-clear" class="theme-tab" title="Clear trajectory" data-i18n-title="view.trailClear">
+                            <i class="fa-solid fa-eraser"></i>
+                        </button>
+                    </div>
+
+                    <!-- Camera modes: follow / orbit / FPV -->
+                    <div class="header-group theme-switch" role="group" aria-label="Camera modes" data-i18n-aria-label="camera.label">
+                        <button id="camera-btn-chase" class="theme-tab theme-tab-active" aria-pressed="true" title="Follow camera" data-i18n-title="camera.chase">
+                            <i class="fa-solid fa-video"></i>
+                        </button>
+                        <button id="camera-btn-orbit" class="theme-tab" aria-pressed="false" title="Orbit camera" data-i18n-title="camera.orbit">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                        <button id="camera-btn-fpv" class="theme-tab" aria-pressed="false" title="FPV camera" data-i18n-title="camera.fpv">
+                            <i class="fa-solid fa-vr-cardboard"></i>
+                        </button>
+                    </div>
+
                     <!-- Language -->
                     <div class="header-group">
                         <select id="language-select" aria-label="Language" data-i18n-aria-label="language.label" class="header-select header-select-lang">

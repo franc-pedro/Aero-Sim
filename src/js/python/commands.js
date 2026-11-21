@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { droneState } from '../core/state.js';
 import { GROUND_HEIGHT } from '../simulation/constants.js';
+import { getMissionPadDistanceCm, getMissionPadId } from './mission-pads.js';
 
 const DEFAULT_SPEED_CM_S = 50;
 const MIN_SPEED_CM_S = 10;
@@ -468,6 +469,16 @@ export function executeTelloCommand(method, args = []) {
 
             case 'get_flight_time':
                 return Promise.resolve(Math.round(flightTime));
+
+            case 'get_mission_pad_id':
+                return Promise.resolve(getMissionPadId());
+
+            case 'get_mission_pad_distance_x':
+            case 'get_mission_pad_distance_y':
+            case 'get_mission_pad_distance_z':
+                return Promise.resolve(
+                    getMissionPadDistanceCm(method.slice(-1).toLowerCase())
+                );
 
             default:
                 throw new TelloCommandError(
