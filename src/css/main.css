@@ -2362,6 +2362,40 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
         grid-column: 1 / -1;
         justify-content: flex-end;
         gap: 0.25rem;
+        /* Deterministic wrap: flight-critical groups keep their position and
+           configuration groups fall onto an extra row, so the mode switch is
+           never clipped off-screen on narrow portrait displays. */
+        flex-wrap: wrap;
+        row-gap: 0.3rem;
+        min-width: 0;
+    }
+
+    .mode-switch {
+        order: 1;
+    }
+
+    .theme-switch {
+        order: 2;
+    }
+
+    .view-switch {
+        order: 3;
+    }
+
+    .camera-switch {
+        order: 4;
+    }
+
+    .lang-switch {
+        order: 5;
+    }
+
+    .header-actions .gamepad-icon {
+        order: 6;
+    }
+
+    .header-actions .header-hide-btn {
+        order: 7;
     }
 
     .header-group {
@@ -2405,6 +2439,15 @@ body.gamepad-connected #bottom-hud .gamepad-calibration + .fpv-dock-separator {
         width: 24px;
         height: 24px;
         font-size: 10px;
+    }
+}
+
+/* Portrait phones: configuration groups give way to the flight controls.
+   The toggles keep their persisted state and come back on wider screens. */
+@media (max-width: 480px) {
+    .view-switch,
+    .camera-switch {
+        display: none;
     }
 }
 

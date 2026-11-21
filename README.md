@@ -11,7 +11,7 @@ Simulador de voo de um quadcopter para treino manual e para aprender programaç�
 ## O que inclui
 
 - Modo Manual com teclado, gamepad e controlos de toque.
-- **Arena de testes métrica**: pavilhão com grelha de 1 m no chão e nas paredes, réguas de altura e helipado marcado com coordenadas.
+- **Arena de testes métrica**: pavilhão com grelha de 1 m no chão e nas paredes, réguas de altura e helipad marcado com coordenadas.
 - **Três modos de câmara**: perseguição, orbital e FPV (tecla C).
 - Auxiliares de voo: indicador de frente e linha de trajetória, à escala real do Tello.
 - HUD de telemetria estilo FPV com altitude, velocidade e horizonte artificial.

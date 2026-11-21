@@ -1,15 +1,15 @@
 const RING_RADIUS = 3;
 const RING_TUBE = 0.25;
 
-const spawn = { x: 0, y: 1.5, z: 0, yaw: 0 };
+const spawn = { x: 0, y: 1, z: 0, yaw: 0 };
 const missionPad = { x: 0, z: 15, radius: 3, color: 0x10b981 };
 
 // A short straight course keeps the first Python mission achievable with
 // 100-400 cm commands and leaves plenty of room for the landing pad.
 const waypoints = [
-    { x: 0, y: 4, z: 4 },
-    { x: 0, y: 5, z: 8 },
-    { x: 0, y: 6, z: 12 },
+    { x: 0, y: 1, z: 4 },
+    { x: 0, y: 2, z: 8 },
+    { x: 0, y: 3, z: 12 },
 ];
 
 function buildRings() {
@@ -28,7 +28,7 @@ export const pythonPlayground = {
     order: 0,
     defaultTheme: 'daylight',
     spawn,
-    bounds: { halfSize: 40, ceiling: 30 },
+    bounds: { halfSize: 40, ceiling: 20 },
     ground: { size: 100, divisions: 40 },
     // Metric test pavilion: ruled walls/floor, height rulers and a marked helipad.
     environment: { type: 'pavilion' },

@@ -3,9 +3,9 @@ import { droneState } from '../core/state.js';
 // Soft touch profile: a larger deadzone, a gentle response curve and a
 // smoothed output make small screen corrections much less abrupt.
 const DEADZONE = 0.16;
-const EXPO = 1.8;
-const MAX_PITCH = 0.6;
-const MAX_ROLL = 0.6;
+const EXPO = 2.4;
+const MAX_PITCH = 0.8;
+const MAX_ROLL = 0.8;
 const MAX_YAW = 0.5;
 const MAX_THROTTLE_OFFSET = 25;
 const AXIS_RESPONSE = 0.16;

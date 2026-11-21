@@ -9,7 +9,7 @@ export function createQuadcopter() {
 
     const carbonMat = new THREE.MeshStandardMaterial({ color: 0x151d29, metalness: 0.5, roughness: 0.45, envMapIntensity: 0.9 });
     const shellMat = new THREE.MeshPhysicalMaterial({
-        color: 0xf1f5f9,
+        color: 0x4682B4,
         metalness: 0.12,
         roughness: 0.32,
         clearcoat: 0.55,
@@ -43,33 +43,33 @@ export function createQuadcopter() {
     nose.castShadow = true;
     droneGroup.add(nose);
 
-    const stripe = new THREE.Mesh(new RoundedBoxGeometry(0.16, 0.015, 0.7, 2, 0.006), accentMat);
+    const stripe = new THREE.Mesh(new RoundedBoxGeometry(0.16, 0.015, 0.5, 2, 0.006), accentMat);
     stripe.position.set(0, 0.205, -0.02);
     droneGroup.add(stripe);
 
     // LiPo battery pack with strap
     const battery = new THREE.Mesh(new RoundedBoxGeometry(0.38, 0.12, 0.46, 2, 0.035), darkMetalMat);
-    battery.position.set(0, 0.235, -0.1);
+    battery.position.set(0, 0.235, -0.02);
     battery.castShadow = true;
     droneGroup.add(battery);
 
     const strap = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.13, 0.09, 2, 0.02), accentMat);
-    strap.position.set(0, 0.235, -0.1);
+    strap.position.set(0, 0.235, -0.03);
     droneGroup.add(strap);
 
     // GPS mast / antenna
-    const antennaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, 0.24, 10), carbonMat);
+    const antennaStem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, 0.40, 10), carbonMat);
     antennaStem.position.set(0.15, 0.3, -0.4);
     antennaStem.rotation.x = -0.3;
     droneGroup.add(antennaStem);
 
     const antennaCap = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 12), accentMat);
-    antennaCap.position.set(0.15, 0.42, -0.43);
+    antennaCap.position.set(0.15, 0.5, -0.46);
     droneGroup.add(antennaCap);
 
     // --- Front FPV gimbal camera (+Z) ---
     const gimbalBracket = new THREE.Mesh(new RoundedBoxGeometry(0.16, 0.05, 0.1, 2, 0.02), darkMetalMat);
-    gimbalBracket.position.set(0, -0.03, 0.5);
+    gimbalBracket.position.set(0, -0.05, 0.5);
     droneGroup.add(gimbalBracket);
 
     const camBody = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.15, 0.16, 3, 0.03), darkMetalMat);
@@ -96,21 +96,21 @@ export function createQuadcopter() {
 
     // Front headlight & rear taillight bars
     const headLight = new THREE.Mesh(
-        new RoundedBoxGeometry(0.3, 0.035, 0.03, 1, 0.012),
+        new RoundedBoxGeometry(0.3, 0.035, 0.03, 3, 0.012),
         new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     );
     headLight.position.set(0, -0.02, 0.56);
     droneGroup.add(headLight);
 
     const tailLight = new THREE.Mesh(
-        new RoundedBoxGeometry(0.42, 0.04, 0.03, 1, 0.014),
+        new RoundedBoxGeometry(0.42, 0.04, 0.03, 3, 0.014),
         new THREE.MeshBasicMaterial({ color: 0xf43f5e })
     );
-    tailLight.position.set(0, 0.06, -0.5);
+    tailLight.position.set(0, 0.06, -0.425);
     droneGroup.add(tailLight);
 
     // --- Landing skids (bent carbon tubes) ---
-    [-0.36, 0.36].forEach((sideX) => {
+    [-0.26, 0.26].forEach((sideX) => {
         const railCurve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(sideX, -0.1, 0.36),
             new THREE.Vector3(sideX * 1.05, -0.25, 0.12),
@@ -152,10 +152,10 @@ export function createQuadcopter() {
         // LED accent strip along the arm (motor-side color cue)
         const armLength = Math.hypot(pos.x, pos.z);
         const armStripe = new THREE.Mesh(
-            new THREE.BoxGeometry(0.028, 0.03, armLength * 0.62),
+            new THREE.BoxGeometry(0.028, 0.03, armLength * 0.85),
             new THREE.MeshBasicMaterial({ color: pos.color })
         );
-        armStripe.position.set(pos.x * 0.56, -0.04, pos.z * 0.56);
+        armStripe.position.set(pos.x * 0.56, -0.03, pos.z * 0.56);
         armStripe.rotation.y = armAngle;
         droneGroup.add(armStripe);
 
